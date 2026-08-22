@@ -1,0 +1,13 @@
+# backend/render.yaml
+services:
+  - type: web
+    name: agentshield-api
+    runtime: python
+    repo: https://github.com/Suryanshu-Singh-cyber/Agentshield
+    plan: free
+    region: ohio
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
