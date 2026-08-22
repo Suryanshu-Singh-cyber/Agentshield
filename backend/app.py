@@ -1,3 +1,46 @@
+# backend/app.py (Additions at the top)
+
+import os
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+import uvicorn
+
+# --- For Render Deployment ---
+PORT = int(os.getenv("PORT", 8000))  # Render sets PORT env variable
+IS_PRODUCTION = os.getenv("ENVIRONMENT", "development") == "production"
+
+# --- CORS for Production ---
+origins = [
+    "http://localhost:8501",  # Local Streamlit
+    "http://localhost:8000",  # Local API
+    "https://*.streamlit.app",  # All Streamlit Cloud apps
+    "https://agentshield-*.onrender.com",  # Your Render URL
+]
+
+app = FastAPI(
+    title="AgentShield API",
+    version="1.0.0",
+    docs_url="/api/docs" if IS_PRODUCTION else "/docs",  # Hide docs in prod? Optional
+    redoc_url="/api/redoc" if IS_PRODUCTION else "/redoc"
+)
+
+# Add Trusted Host middleware for security
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["*"]  # Allow all for now, restrict in production
+)
+
+# Update CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ... rest of your backend code ...
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
