@@ -1,3 +1,38 @@
+# frontend/app.py (Add at the top)
+
+import streamlit as st
+import requests
+import os
+
+# --- Environment Detection ---
+def get_api_url():
+    """
+    Returns the appropriate API URL based on environment.
+    - Local development: http://localhost:8000
+    - Production (Render): https://agentshield-api.onrender.com
+    """
+    # Check if running on Streamlit Cloud
+    if os.getenv("IS_STREAMLIT_CLOUD", "false") == "true":
+        return "https://agentshield-api.onrender.com"  # Your Render URL
+    
+    # Check for custom environment variable
+    api_url = os.getenv("AGENTSHIELD_API_URL")
+    if api_url:
+        return api_url
+    
+    # Default to local
+    return "http://localhost:8000"
+
+# Set the API URL
+API_URL = get_api_url()
+
+# --- Display environment info in sidebar for debugging ---
+with st.sidebar:
+    st.caption(f"🔗 API: {API_URL}")
+    if API_URL.startswith("http://localhost"):
+        st.warning("⚠️ Using local backend")
+    else:
+        st.success("✅ Connected to production backend")
 import streamlit as st
 import requests
 import json
