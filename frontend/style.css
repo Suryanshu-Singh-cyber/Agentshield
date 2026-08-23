@@ -1,0 +1,67 @@
+/* frontend/style.css */
+.stApp {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #e0e0e0;
+}
+
+h1, h2, h3 {
+    font-weight: 700 !important;
+    background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+[data-testid="metric-container"] {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+[data-testid="metric-container"]:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px 0 rgba(0, 210, 255, 0.3);
+}
+
+.stButton > button {
+    background: linear-gradient(90deg, #00d2ff, #3a7bd5) !important;
+    border: none !important;
+    border-radius: 50px !important;
+    padding: 0.6rem 1.5rem !important;
+    font-weight: 600 !important;
+    color: white !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px 0 rgba(0, 210, 255, 0.3);
+}
+
+.stButton > button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px 0 rgba(0, 210, 255, 0.6);
+}
+
+.css-1d391kg {
+    background: rgba(15, 12, 41, 0.8) !important;
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.streamlit-expanderHeader {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 10px !important;
+}
+
+.dataframe {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 10px !important;
+}
+
+/* Fix for Streamlit Cloud */
+.stAlert {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 10px !important;
+}
