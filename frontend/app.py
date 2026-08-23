@@ -1,12 +1,9 @@
 # frontend/app.py
-# AGENTSHIELD - PREMIUM EDITION
+# AGENTSHIELD - OPTIMIZED WORKING VERSION
 # Team: Nawab_Coders
 # OOSC 4.0 Hackathon · IIIT Allahabad
-# Version: 4.1.0
+# Version: 4.2.0
 
-# ============================================
-# 1. IMPORT STATEMENTS
-# ============================================
 import streamlit as st
 import requests
 import pandas as pd
@@ -18,22 +15,17 @@ import time
 from datetime import datetime
 
 # ============================================
-# 2. PAGE CONFIG (MUST BE FIRST)
+# PAGE CONFIG (MUST BE FIRST)
 # ============================================
 st.set_page_config(
     page_title="🛡️ AgentShield · Nawab_Coders",
     page_icon="🛡️",
     layout="wide",
-    initial_sidebar_state="expanded",
-    menu_items={
-        'Get Help': 'https://github.com/Suryanshu-Singh-cyber/Agentshield',
-        'Report a bug': 'https://github.com/Suryanshu-Singh-cyber/Agentshield/issues',
-        'About': 'AgentShield v4.1.0 · Team Nawab_Coders · OOSC 4.0'
-    }
+    initial_sidebar_state="expanded"
 )
 
 # ============================================
-# 3. ENVIRONMENT DETECTION
+# ENVIRONMENT DETECTION
 # ============================================
 def get_api_url():
     try:
@@ -50,17 +42,17 @@ def get_api_url():
 API_URL = get_api_url()
 
 # ============================================
-# 4. OPTIMIZED CSS (No Lag)
+# OPTIMIZED CSS (No Lag)
 # ============================================
 def load_css():
     st.markdown("""
     <style>
-    /* ─── Google Font ─── */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+    /* ─── Font ─── */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
 
     /* ─── Base ─── */
     .stApp {
-        background: linear-gradient(135deg, #0a0918 0%, #1a0f2e 40%, #0f1a2e 70%, #0a0918 100%);
+        background: linear-gradient(135deg, #0a0918, #1a0f2e, #0f1a2e, #0a0918);
         color: #eef2ff;
         font-family: 'Inter', sans-serif;
     }
@@ -68,29 +60,16 @@ def load_css():
     /* ─── Team Badge ─── */
     .team-badge {
         display: inline-block;
-        background: linear-gradient(135deg, rgba(0,210,255,0.12), rgba(58,123,213,0.08));
-        padding: 6px 20px;
+        background: linear-gradient(135deg, rgba(0,210,255,0.15), rgba(58,123,213,0.08));
+        padding: 6px 22px;
         border-radius: 40px;
         border: 1px solid rgba(0,210,255,0.12);
         font-size: 0.75rem;
         font-weight: 700;
         color: #00d2ff;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
         text-transform: uppercase;
-        margin-bottom: 1rem;
-    }
-
-    /* ─── Glowing Cursor ─── */
-    .cursor-glow {
-        position: fixed;
-        width: 300px;
-        height: 300px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(0,210,255,0.04) 0%, transparent 70%);
-        pointer-events: none;
-        transform: translate(-50%, -50%);
-        z-index: 0;
-        transition: width 0.3s ease, height 0.3s ease;
+        margin-bottom: 0.8rem;
     }
 
     /* ─── Splash Screen ─── */
@@ -101,12 +80,12 @@ def load_css():
         width: 100%;
         height: 100%;
         z-index: 99999;
-        background: linear-gradient(135deg, #0a0918, #1a0f2e);
+        background: #0a0918;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        transition: opacity 0.8s ease, visibility 0.8s ease;
+        transition: opacity 0.6s ease, visibility 0.6s ease;
         font-family: 'Inter', sans-serif;
     }
     #splash-screen.hide {
@@ -114,274 +93,168 @@ def load_css():
         visibility: hidden;
         pointer-events: none;
     }
-    .splash-icon {
-        font-size: 5rem;
-        animation: pulse 1.8s ease-in-out infinite;
-    }
+    .splash-icon { font-size: 4.5rem; animation: pulse 1.5s ease-in-out infinite; }
     @keyframes pulse {
         0%, 100% { transform: scale(1); opacity: 0.7; }
-        50% { transform: scale(1.08); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 1; }
     }
     .splash-title {
-        font-size: 3.5rem;
+        font-size: 3rem;
         font-weight: 900;
         background: linear-gradient(135deg, #ffffff 20%, #00d2ff 50%, #3a7bd5 80%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
     .splash-sub {
         color: #94a3b8;
+        font-size: 0.85rem;
         letter-spacing: 3px;
         text-transform: uppercase;
-        font-size: 0.9rem;
-        font-weight: 600;
-        margin-top: 0.5rem;
+        margin-top: 0.3rem;
     }
     .splash-team {
         margin-top: 1rem;
-        padding: 0.4rem 1.8rem;
-        border: 1px solid rgba(0,210,255,0.15);
+        padding: 0.3rem 1.6rem;
+        border: 1px solid rgba(0,210,255,0.12);
         border-radius: 40px;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         color: #00d2ff;
         background: rgba(0,210,255,0.04);
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
     }
     .splash-loader {
-        margin-top: 2rem;
-        width: 180px;
+        margin-top: 1.5rem;
+        width: 150px;
         height: 2px;
         background: rgba(255,255,255,0.05);
         border-radius: 2px;
         overflow: hidden;
-        position: relative;
     }
     .splash-loader::after {
         content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
+        display: block;
         width: 100%;
         height: 100%;
         background: linear-gradient(90deg, transparent, #00d2ff, #3a7bd5, transparent);
-        animation: loaderSlide 1.8s ease-in-out infinite;
+        animation: loadSlide 1.5s ease-in-out infinite;
     }
-    @keyframes loaderSlide {
-        0% { left: -100%; }
-        100% { left: 100%; }
-    }
+    @keyframes loadSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
     /* ─── Headers ─── */
-    h1, h2, h3, .gradient-text {
+    h1, h2, h3 {
         font-weight: 800 !important;
         background: linear-gradient(135deg, #ffffff 30%, #00d2ff 70%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
-    h1 { font-size: 3.5rem !important; line-height: 1.05 !important; }
-    h2 { font-size: 2.2rem !important; }
-    h3 { font-size: 1.3rem !important; }
+    h1 { font-size: 3.2rem !important; line-height: 1.05 !important; }
+    h2 { font-size: 2rem !important; }
+    h3 { font-size: 1.2rem !important; }
 
     /* ─── Glass Cards ─── */
     .glass-card {
         background: rgba(255,255,255,0.02);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 20px;
-        padding: 24px 22px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.04);
+        border-radius: 18px;
+        padding: 20px 18px;
         transition: all 0.3s ease;
         height: 100%;
     }
     .glass-card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(0,210,255,0.1);
-        box-shadow: 0 12px 40px 0 rgba(0,210,255,0.04);
+        transform: translateY(-3px);
+        border-color: rgba(0,210,255,0.08);
+        box-shadow: 0 8px 30px 0 rgba(0,210,255,0.03);
     }
 
     /* ─── Feature Cards ─── */
     .feature-card {
         background: rgba(255,255,255,0.015);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
         border: 1px solid rgba(255,255,255,0.04);
-        border-radius: 18px;
-        padding: 24px 18px;
+        border-radius: 16px;
+        padding: 20px 16px;
         text-align: center;
         transition: all 0.3s ease;
         height: 100%;
     }
     .feature-card:hover {
-        transform: translateY(-6px);
-        border-color: rgba(0,210,255,0.12);
-        box-shadow: 0 12px 36px 0 rgba(0,210,255,0.04);
+        transform: translateY(-4px);
+        border-color: rgba(0,210,255,0.1);
+        box-shadow: 0 8px 24px 0 rgba(0,210,255,0.03);
     }
-    .feature-card .icon {
-        font-size: 2.5rem;
-        margin-bottom: 0.6rem;
-        display: block;
-    }
-    .feature-card h4 {
-        font-weight: 700;
-        font-size: 1.05rem;
-        color: #eef2ff;
-        margin-bottom: 0.3rem;
-    }
-    .feature-card p {
-        font-size: 0.82rem;
-        color: #94a3b8;
-        line-height: 1.5;
-    }
-    .feature-card .badge {
-        display: inline-block;
-        background: rgba(0,210,255,0.06);
-        color: #00d2ff;
-        font-size: 0.6rem;
-        padding: 2px 12px;
-        border-radius: 20px;
-        border: 1px solid rgba(0,210,255,0.06);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-top: 8px;
-    }
+    .feature-card .icon { font-size: 2.2rem; display: block; margin-bottom: 0.5rem; }
+    .feature-card h4 { font-weight: 700; font-size: 1rem; color: #eef2ff; margin-bottom: 0.2rem; }
+    .feature-card p { font-size: 0.8rem; color: #94a3b8; line-height: 1.4; }
 
     /* ─── Metrics ─── */
     [data-testid="metric-container"] {
         background: rgba(255,255,255,0.02);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.04);
-        border-radius: 16px;
-        padding: 20px 18px;
-        transition: all 0.3s ease;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.03);
+        border-radius: 14px;
+        padding: 16px 14px;
     }
-    [data-testid="metric-container"]:hover {
-        transform: translateY(-3px);
-        border-color: rgba(0,210,255,0.08);
-        box-shadow: 0 8px 30px 0 rgba(0,210,255,0.03);
-    }
-    [data-testid="metric-label"] {
-        color: #94a3b8 !important;
-        font-weight: 600 !important;
-        font-size: 0.8rem !important;
-    }
-    [data-testid="metric-value"] {
-        color: #eef2ff !important;
-        font-weight: 800 !important;
-        font-size: 2rem !important;
-    }
+    [data-testid="metric-label"] { color: #94a3b8 !important; font-weight: 600 !important; font-size: 0.75rem !important; }
+    [data-testid="metric-value"] { color: #eef2ff !important; font-weight: 800 !important; font-size: 1.8rem !important; }
 
     /* ─── Buttons ─── */
     .stButton > button {
         background: linear-gradient(135deg, #00d2ff, #3a7bd5) !important;
         border: none !important;
         border-radius: 40px !important;
-        padding: 0.6rem 1.8rem !important;
+        padding: 0.5rem 1.6rem !important;
         font-weight: 700 !important;
         color: #0a0918 !important;
-        transition: all 0.25s ease !important;
-        font-family: 'Inter', sans-serif !important;
+        transition: all 0.2s ease !important;
     }
-    .stButton > button:hover {
-        transform: scale(1.03);
-        box-shadow: 0 6px 28px 0 rgba(0,210,255,0.15);
-    }
+    .stButton > button:hover { transform: scale(1.03); box-shadow: 0 4px 20px 0 rgba(0,210,255,0.15); }
 
     /* ─── Sidebar ─── */
-    .css-1d391kg, .css-1lcbmhc {
-        background: rgba(10,9,24,0.8) !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
+    .css-1d391kg {
+        background: rgba(10,9,24,0.85) !important;
+        backdrop-filter: blur(16px) !important;
         border-right: 1px solid rgba(255,255,255,0.02) !important;
-    }
-    .sidebar-logo {
-        text-align: center;
-        padding: 12px 0 16px;
-        border-bottom: 1px solid rgba(255,255,255,0.02);
-    }
-    .sidebar-logo .title {
-        font-weight: 800;
-        font-size: 1.2rem;
-        background: linear-gradient(135deg, #ffffff 30%, #00d2ff);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .sidebar-logo .team {
-        font-size: 0.65rem;
-        color: #00d2ff;
-        letter-spacing: 1px;
-        font-weight: 600;
-        margin-top: 2px;
     }
 
     /* ─── Expanders ─── */
     .streamlit-expanderHeader {
-        background: rgba(255,255,255,0.015) !important;
+        background: rgba(255,255,255,0.01) !important;
         border-radius: 12px !important;
         border: 1px solid rgba(255,255,255,0.03) !important;
         font-weight: 600 !important;
         color: #eef2ff !important;
-        padding: 10px 16px !important;
-        transition: all 0.2s ease !important;
+        padding: 8px 14px !important;
     }
-    .streamlit-expanderHeader:hover {
-        background: rgba(255,255,255,0.025) !important;
-        border-color: rgba(0,210,255,0.05) !important;
-    }
+    .streamlit-expanderHeader:hover { background: rgba(255,255,255,0.02) !important; }
 
     /* ─── Alerts ─── */
-    .stAlert {
-        background: rgba(255,255,255,0.015) !important;
-        border-radius: 12px !important;
-        border: 1px solid rgba(255,255,255,0.03) !important;
-        padding: 14px 18px !important;
-    }
+    .stAlert { background: rgba(255,255,255,0.015) !important; border-radius: 12px !important; }
     .stSuccess { background: rgba(0,210,255,0.03) !important; border-color: rgba(0,210,255,0.06) !important; }
     .stWarning { background: rgba(255,165,0,0.03) !important; border-color: rgba(255,165,0,0.06) !important; }
     .stError { background: rgba(255,0,0,0.03) !important; border-color: rgba(255,0,0,0.06) !important; }
-    .stInfo { background: rgba(0,210,255,0.02) !important; border-color: rgba(0,210,255,0.04) !important; }
-
-    /* ─── Dataframe ─── */
-    .dataframe {
-        background: rgba(255,255,255,0.01) !important;
-        border-radius: 12px !important;
-        border: 1px solid rgba(255,255,255,0.03) !important;
-    }
-
-    /* ─── Scrollbar ─── */
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: rgba(255,255,255,0.01); }
-    ::-webkit-scrollbar-thumb { background: #00d2ff; border-radius: 8px; }
 
     /* ─── Footer ─── */
     .footer {
         text-align: center;
-        padding: 24px 0 12px;
+        padding: 20px 0 10px;
         border-top: 1px solid rgba(255,255,255,0.02);
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         color: #475569;
-        font-family: 'Inter', sans-serif;
     }
     .footer a { color: #00d2ff; text-decoration: none; font-weight: 600; }
     .footer .heart { color: #ff6b6b; display: inline-block; animation: heartBeat 1.5s ease-in-out infinite; }
-    @keyframes heartBeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+    @keyframes heartBeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
     /* ─── Responsive ─── */
     @media (max-width: 768px) {
-        h1 { font-size: 2.2rem !important; }
-        h2 { font-size: 1.6rem !important; }
-        .glass-card { padding: 16px 14px; }
-        .feature-card { padding: 16px 14px; }
-        .splash-title { font-size: 2.2rem; }
-        [data-testid="metric-value"] { font-size: 1.4rem !important; }
+        h1 { font-size: 2rem !important; }
+        h2 { font-size: 1.5rem !important; }
+        .glass-card { padding: 14px 12px; }
+        .feature-card { padding: 14px 12px; }
+        .splash-title { font-size: 2rem; }
+        [data-testid="metric-value"] { font-size: 1.3rem !important; }
     }
     </style>
-
-    <!-- Glowing Cursor -->
-    <div class="cursor-glow" id="cursorGlow"></div>
 
     <!-- Splash Screen -->
     <div id="splash-screen">
@@ -393,21 +266,12 @@ def load_css():
     </div>
 
     <script>
-    // Glowing Cursor
-    document.addEventListener('mousemove', function(e) {
-        var glow = document.getElementById('cursorGlow');
-        if (glow) {
-            glow.style.left = e.clientX + 'px';
-            glow.style.top = e.clientY + 'px';
-        }
-    });
-
-    // Splash Screen Auto-Hide
+    // Auto-hide splash after 3.5 seconds
     document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() {
             var splash = document.getElementById('splash-screen');
             if (splash) splash.classList.add('hide');
-        }, 4000);
+        }, 3500);
     });
     </script>
     """, unsafe_allow_html=True)
@@ -415,7 +279,7 @@ def load_css():
 load_css()
 
 # ============================================
-# 5. SESSION STATE
+# SESSION STATE
 # ============================================
 if "scenarios" not in st.session_state:
     st.session_state.scenarios = []
@@ -451,7 +315,7 @@ if "fix_history" not in st.session_state:
     st.session_state.fix_history = None
 
 # ============================================
-# 6. API FUNCTIONS
+# API FUNCTIONS
 # ============================================
 def test_api_connection():
     try:
@@ -486,33 +350,32 @@ def api_request(method, endpoint, **kwargs):
         return None, str(e)[:80]
 
 # ============================================
-# 7. HERO SECTION
+# HERO SECTION
 # ============================================
 st.markdown("""
-<div style="text-align:center;padding:10px 0 15px 0;">
+<div style="text-align:center;padding:5px 0 10px 0;">
     <div class="team-badge">🏆 Team Nawab_Coders · OOSC 4.0</div>
-    <h1 style="font-size:3.8rem;line-height:1.05;margin-bottom:0.5rem;">
+    <h1 style="font-size:3.5rem;line-height:1.05;margin-bottom:0.3rem;">
         Don't just evaluate.<br>
         <span style="background:linear-gradient(135deg,#00d2ff,#3a7bd5);
                      -webkit-background-clip:text;-webkit-text-fill-color:transparent;">
             Attack. Block. Fix. Verify.
         </span>
     </h1>
-    <p style="max-width:640px;margin:0 auto 1.5rem;color:#94a3b8;font-size:1.05rem;line-height:1.7;">
+    <p style="max-width:600px;margin:0 auto 1rem;color:#94a3b8;font-size:1rem;line-height:1.6;">
         AgentShield is an <strong style="color:#eef2ff;">active reliability engine</strong> for AI agents.
-        It automatically generates adversarial tests, blocks destructive behavior,
-        and proves that fixes actually work.
+        It generates adversarial tests, blocks destructive behavior, and proves fixes work.
     </p>
 </div>
 """, unsafe_allow_html=True)
 
 # ============================================
-# 8. PS4 STORY SECTION
+# PS4 STORY
 # ============================================
 st.markdown("""
 <div style="padding:5px 0;">
-    <h2 style="text-align:center;font-size:2rem;">Why <span style="color:#00d2ff;">PS4</span>?</h2>
-    <p style="text-align:center;color:#94a3b8;max-width:560px;margin:0 auto 1.2rem;">
+    <h2 style="text-align:center;font-size:1.8rem;">Why <span style="color:#00d2ff;">PS4</span>?</h2>
+    <p style="text-align:center;color:#94a3b8;max-width:500px;margin:0 auto 0.8rem;font-size:0.95rem;">
         The AI agent reliability gap is real. Here's how AgentShield closes it.
     </p>
 </div>
@@ -523,17 +386,17 @@ c1, c2 = st.columns([1, 1])
 with c1:
     st.markdown("""
     <div class="glass-card">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-            <span style="font-size:1.8rem;">⚠️</span>
-            <span style="font-weight:800;font-size:1.1rem;color:#ff6b6b;">The Problem</span>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="font-size:1.6rem;">⚠️</span>
+            <span style="font-weight:800;font-size:1rem;color:#ff6b6b;">The Problem</span>
         </div>
-        <p style="color:#94a3b8;line-height:1.8;font-size:0.95rem;">
-            <span style="background:rgba(255,50,50,0.08);padding:2px 12px;border-radius:20px;color:#ff6b6b;font-weight:700;">70%</span>
+        <p style="color:#94a3b8;line-height:1.7;font-size:0.9rem;">
+            <span style="background:rgba(255,50,50,0.08);padding:2px 10px;border-radius:20px;color:#ff6b6b;font-weight:700;">70%</span>
             of AI agents fail on real-world tasks. Most tools only tell you 
-            <em style="color:#eef2ff;">after</em> deployment—when the damage is done.
+            <em style="color:#eef2ff;">after</em> deployment.
         </p>
         <br>
-        <p style="color:#94a3b8;line-height:1.8;font-size:0.95rem;">
+        <p style="color:#94a3b8;line-height:1.7;font-size:0.9rem;">
             <span style="color:#00d2ff;font-weight:700;">AgentShield</span> tests agents 
             <strong style="color:#eef2ff;">before</strong> they go live.
         </p>
@@ -543,35 +406,39 @@ with c1:
 with c2:
     st.markdown("""
     <div class="glass-card" style="text-align:center;">
-        <div style="font-size:3rem;margin-bottom:10px;">🔄</div>
-        <div style="font-weight:700;font-size:1.1rem;margin-bottom:12px;color:#eef2ff;">The AgentShield Flow</div>
-        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 6px;font-size:0.8rem;color:#94a3b8;">
-            <span style="background:rgba(255,255,255,0.03);padding:6px 14px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">🔍 Attack</span>
-            <span style="color:#00d2ff;padding:0 2px;">→</span>
-            <span style="background:rgba(255,255,255,0.03);padding:6px 14px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">🛡️ Block</span>
-            <span style="color:#00d2ff;padding:0 2px;">→</span>
-            <span style="background:rgba(255,255,255,0.03);padding:6px 14px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">🧠 Root Cause</span>
-            <span style="color:#00d2ff;padding:0 2px;">→</span>
-            <span style="background:rgba(255,255,255,0.03);padding:6px 14px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">🔧 Fix</span>
-            <span style="color:#00d2ff;padding:0 2px;">→</span>
-            <span style="background:rgba(255,255,255,0.03);padding:6px 14px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">✅ Verify</span>
+        <div style="font-size:2.5rem;margin-bottom:8px;">🔄</div>
+        <div style="font-weight:700;font-size:1rem;margin-bottom:10px;color:#eef2ff;">The AgentShield Flow</div>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 4px;font-size:0.75rem;color:#94a3b8;">
+            <span style="background:rgba(255,255,255,0.03);padding:4px 12px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">🔍 Attack</span>
+            <span style="color:#00d2ff;">→</span>
+            <span style="background:rgba(255,255,255,0.03);padding:4px 12px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">🛡️ Block</span>
+            <span style="color:#00d2ff;">→</span>
+            <span style="background:rgba(255,255,255,0.03);padding:4px 12px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">🧠 Root Cause</span>
+            <span style="color:#00d2ff;">→</span>
+            <span style="background:rgba(255,255,255,0.03);padding:4px 12px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">🔧 Fix</span>
+            <span style="color:#00d2ff;">→</span>
+            <span style="background:rgba(255,255,255,0.03);padding:4px 12px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">✅ Verify</span>
         </div>
-        <div style="margin-top:12px;font-size:0.65rem;color:#475569;">
+        <div style="margin-top:8px;font-size:0.6rem;color:#475569;">
             Pre-deployment · Sandboxed · Actionable
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 # ============================================
-# 9. SIDEBAR
+# SIDEBAR
 # ============================================
 with st.sidebar:
     st.markdown("""
-    <div class="sidebar-logo">
-        <div style="font-size:2.2rem;">🛡️</div>
-        <div class="title">AgentShield</div>
-        <div class="team">⚡ Team Nawab_Coders</div>
-        <div style="font-size:0.55rem;color:#475569;margin-top:4px;">v4.1.0 · OOSC 4.0</div>
+    <div style="text-align:center;padding:10px 0 12px;border-bottom:1px solid rgba(255,255,255,0.02);">
+        <div style="font-size:2rem;">🛡️</div>
+        <div style="font-weight:800;font-size:1.1rem;background:linear-gradient(135deg,#ffffff 30%,#00d2ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+            AgentShield
+        </div>
+        <div style="font-size:0.6rem;color:#00d2ff;letter-spacing:0.5px;font-weight:600;">
+            ⚡ Team Nawab_Coders
+        </div>
+        <div style="font-size:0.5rem;color:#475569;">v4.2.0 · OOSC 4.0</div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -660,10 +527,10 @@ with st.sidebar:
     st.divider()
     if st.session_state.tests_generated:
         st.caption(f"📋 {len(st.session_state.scenarios)} scenarios")
-    st.caption("🛡️ v4.1.0")
+    st.caption("🛡️ v4.2.0")
 
 # ============================================
-# 10. METRICS
+# METRICS
 # ============================================
 report = st.session_state.get("report", {})
 has_report = report and report.get("total_tests", 0) > 0
@@ -687,7 +554,7 @@ with col4:
     st.metric("🎯 Consistency", val)
 
 # ============================================
-# 11. MAIN CONTENT
+# MAIN CONTENT
 # ============================================
 if has_report:
     col1, col2 = st.columns([2, 1])
@@ -712,7 +579,9 @@ if has_report:
             plot_bgcolor="rgba(0,0,0,0)",
             font_color="white",
             yaxis_range=[0, 100],
-            height=320
+            height=280,
+            xaxis_title=None,
+            yaxis_title=None
         )
         fig.update_traces(texttemplate='%{y:.0f}%', textposition='outside')
         st.plotly_chart(fig, use_container_width=True)
@@ -737,7 +606,9 @@ if has_report:
             plot_bgcolor="rgba(0,0,0,0)",
             font_color="white",
             yaxis_range=[0, 100],
-            height=280
+            height=240,
+            xaxis_title=None,
+            yaxis_title=None
         )
         fig.update_traces(texttemplate='%{y:.0f}%', textposition='outside')
         st.plotly_chart(fig, use_container_width=True)
@@ -763,40 +634,39 @@ else:
     st.info("👈 Generate and run tests to see results!")
 
 # ============================================
-# 12. FEATURES GRID
+# FEATURES GRID (FIXED - VISIBLE NOW)
 # ============================================
 st.markdown("""
-<div style="padding:20px 0 5px 0;">
-    <h2 style="text-align:center;font-size:2rem;">Core <span style="color:#00d2ff;">Capabilities</span></h2>
-    <p style="text-align:center;color:#94a3b8;max-width:560px;margin:0 auto 1.2rem;">
+<div style="padding:15px 0 5px 0;">
+    <h2 style="text-align:center;font-size:1.8rem;">Core <span style="color:#00d2ff;">Capabilities</span></h2>
+    <p style="text-align:center;color:#94a3b8;max-width:500px;margin:0 auto 0.8rem;font-size:0.9rem;">
         Every feature closes the loop from test to production.
     </p>
 </div>
 """, unsafe_allow_html=True)
 
 features = [
-    ("🔥", "Action Firewall", "Real-time risk scoring & blocking of destructive tool calls.", "CRITICAL"),
-    ("🐺", "Feral Agent", "An AI adversary that actively tries to break your agent.", "AI-POWERED"),
-    ("🧠", "Self-Evolving Tests", "Learns from production failures and generates new tests.", "ADAPTIVE"),
-    ("🔍", "Root Cause Graph", "Visual chain from input to root cause of failure.", "DEBUG"),
-    ("🦜", "Canary Testing", "Detects data exfiltration with canary tokens.", "SECURITY"),
-    ("💰", "Cost Analytics", "Track test costs in USD & INR. Optimise your spend.", "OPTIMIZE")
+    ("🔥", "Action Firewall", "Real-time risk scoring & blocking of destructive tool calls."),
+    ("🐺", "Feral Agent", "An AI adversary that actively tries to break your agent."),
+    ("🧠", "Self-Evolving Tests", "Learns from production failures and generates new tests."),
+    ("🔍", "Root Cause Graph", "Visual chain from input to root cause of failure."),
+    ("🦜", "Canary Testing", "Detects data exfiltration with canary tokens."),
+    ("💰", "Cost Analytics", "Track test costs in USD & INR. Optimize your spend.")
 ]
 
 cols = st.columns(3)
-for i, (icon, title, desc, badge) in enumerate(features):
+for i, (icon, title, desc) in enumerate(features):
     with cols[i % 3]:
         st.markdown(f"""
         <div class="feature-card">
             <span class="icon">{icon}</span>
             <h4>{title}</h4>
             <p>{desc}</p>
-            <span class="badge">{badge}</span>
         </div>
         """, unsafe_allow_html=True)
 
 # ============================================
-# 13. EXPANDERS
+# EXPANDERS (All Features)
 # ============================================
 
 # ─── Test Scenarios ───
@@ -814,7 +684,6 @@ with st.expander("📋 Test Scenarios"):
 # ─── Feral Agent ───
 with st.expander("🐺 Feral Agent — AI vs AI"):
     st.subheader("The Feral Agent attacks your AI")
-    st.caption("A secondary AI that actively tries to break your primary agent")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -1009,7 +878,6 @@ with st.expander("💰 Cost Analytics (USD/INR)"):
 # ─── Per-Turn Evaluation ───
 with st.expander("⚡ Per-Turn Evaluation"):
     st.subheader("Real-time Agent Behavior Analysis")
-    st.caption("Lightweight evaluation on every agent step")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -1054,7 +922,6 @@ with st.expander("⚡ Per-Turn Evaluation"):
 # ─── Canary Testing ───
 with st.expander("🦜 Canary Testing"):
     st.subheader("Data Exfiltration Detection")
-    st.caption("Detect when agent tries to leak sensitive data")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -1123,7 +990,6 @@ with st.expander("🦜 Canary Testing"):
 # ─── Fix → PR Generation ───
 with st.expander("🔧 Fix → PR Generation"):
     st.subheader("Automated Code Fix Generation")
-    st.caption("Generate and apply fixes for failures")
     
     if st.button("📊 Fix History", use_container_width=True):
         if not st.session_state.api_connected:
@@ -1162,7 +1028,6 @@ with st.expander("🔧 Fix → PR Generation"):
 # ─── Dataset Loader ───
 with st.expander("📚 Dataset Loader"):
     st.subheader("Evaluation Datasets")
-    st.caption("Built-in: OWASP, MITRE, Prompt Injections, Destructive Actions, Benign, Edge Cases")
     
     if st.button("📊 List Datasets", use_container_width=True):
         if not st.session_state.api_connected:
@@ -1272,7 +1137,7 @@ with st.expander("📚 Dataset Loader"):
                 st.json(data)
 
 # ============================================
-# 14. RAW REPORT
+# RAW REPORT
 # ============================================
 with st.expander("📊 Raw Report JSON"):
     if has_report:
@@ -1281,18 +1146,16 @@ with st.expander("📊 Raw Report JSON"):
         st.write("Run tests to see the full report.")
 
 # ============================================
-# 15. FOOTER
+# FOOTER
 # ============================================
 st.markdown(f"""
 <div class="footer">
-    🛡️ <strong>AgentShield</strong> v4.1.0 · Built with <span class="heart">❤</span> by 
+    🛡️ <strong>AgentShield</strong> v4.2.0 · Built with <span class="heart">❤</span> by 
     <strong style="color:#00d2ff;">Team Nawab_Coders</strong> · OOSC 4.0 · IIIT Allahabad
     <br>
-    <span style="color:#475569;font-size:0.7rem;">
+    <span style="color:#475569;font-size:0.65rem;">
         PS4 · AI Agent Evaluation &amp; Reliability Engine · 
-        <a href="https://github.com/Suryanshu-Singh-cyber/Agentshield" target="_blank">
-            <i class="fab fa-github"></i> GitHub
-        </a>
+        <a href="https://github.com/Suryanshu-Singh-cyber/Agentshield" target="_blank">GitHub</a>
     </span>
 </div>
 """, unsafe_allow_html=True)
