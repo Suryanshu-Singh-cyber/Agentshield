@@ -575,6 +575,10 @@ with st.expander("🐺 Feral Agent - AI vs AI Testing"):
 
 # ============================================
 # NEW SECTION: ROOT CAUSE GRAPH
+# frontend/app.py - REPLACE THE ROOT CAUSE SECTION
+
+# ============================================
+# ROOT CAUSE GRAPH SECTION (FIXED)
 # ============================================
 with st.expander("🔍 Root Cause Graph"):
     st.subheader("Failure Taxonomy & Root Cause Analysis")
@@ -599,23 +603,36 @@ with st.expander("🔍 Root Cause Graph"):
         st.subheader("Taxonomy Breakdown")
         taxonomy = data.get("taxonomy_breakdown", {})
         if taxonomy:
-            for category, info in taxonomy.items():
-                st.metric(f"{category}", info.get("count", 0), help=info.get("description", ""))
+            cols = st.columns(min(len(taxonomy), 4))
+            for idx, (category, info) in enumerate(taxonomy.items()):
+                with cols[idx % 4]:
+                    st.metric(
+                        category.replace("_", " ").title(), 
+                        info.get("count", 0), 
+                        help=info.get("description", "")
+                    )
         
         # Critical Failures
-        if data.get("critical_failures"):
-            st.subheader("Critical Failures")
-            for f in data["critical_failures"][:3]:
+        critical = data.get("critical_failures", [])
+        if critical:
+            st.subheader("🔥 Critical Failures")
+            for f in critical[:3]:
                 st.warning(f"🔥 {f.get('root_cause', 'Unknown')}")
                 st.caption(f"Fix: {f.get('fix', 'Review')}")
         
-        # Failure Chains
-        st.subheader("Failure Chains")
+        # Failure Chains - FIXED: handle None values
+        st.subheader("🔗 Failure Chains")
         chains = data.get("failure_chains", [])[:3]
         for chain in chains:
-            with st.expander(f"🔗 {chain.get('input', '')[:60]}..."):
+            # Safely get input, default to empty string
+            chain_input = chain.get("input") or ""
+            display_text = chain_input[:60] if chain_input else "Unknown input"
+            with st.expander(f"🔗 {display_text}..."):
                 for step in chain.get("chain", []):
-                    st.caption(f"Step {step.get('step')}: {step.get('event')} → {step.get('detail')}")
+                    step_num = step.get("step", "?")
+                    step_event = step.get("event", "Unknown")
+                    step_detail = step.get("detail", "")
+                    st.caption(f"Step {step_num}: {step_event} → {step_detail}")
 
 # ============================================
 # NEW SECTION: COST TRACKER
