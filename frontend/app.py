@@ -1,7 +1,8 @@
 # frontend/app.py
-# AGENTSHIELD - SIMPLIFIED WORKING VERSION
+# AGENTSHIELD - ENHANCED PREMIUM VERSION
 # Team: Nawab_Coders
 # OOSC 4.0 Hackathon · IIIT Allahabad
+# Problem Statement 4: AI Agent Evaluation and Reliability Engine
 
 import streamlit as st
 import requests
@@ -14,10 +15,10 @@ import time
 from datetime import datetime
 
 # ============================================
-# PAGE CONFIG (MUST BE FIRST)
+# PAGE CONFIG
 # ============================================
 st.set_page_config(
-    page_title="🛡️ AgentShield · Nawab_Coders",
+    page_title="🛡️ AgentShield · PS4 · Nawab_Coders",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -77,106 +78,188 @@ def get_api_url():
 API_URL = get_api_url()
 
 # ============================================
-# SIMPLE CSS (No Splash Screen)
+# PREMIUM CSS WITH CURSOR ANIMATION
 # ============================================
 st.markdown("""
 <style>
-/* ─── Font ─── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+/* ─── Google Font ─── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 
 /* ─── Base ─── */
 .stApp {
-    background: linear-gradient(135deg, #0a0918, #1a0f2e, #0f1a2e, #0a0918);
+    background: linear-gradient(135deg, #0a0918 0%, #1a0f2e 30%, #0f1a2e 60%, #0a0918 100%);
     color: #eef2ff;
     font-family: 'Inter', sans-serif;
+}
+
+/* ─── Custom Cursor Animation ─── */
+.cursor-glow {
+    position: fixed;
+    width: 350px;
+    height: 350px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 210, 255, 0.06) 0%, rgba(58, 123, 213, 0.03) 40%, transparent 70%);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    z-index: 999;
+    transition: width 0.15s ease, height 0.15s ease, background 0.3s ease;
+    animation: cursorPulse 3s ease-in-out infinite;
+}
+@keyframes cursorPulse {
+    0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
 }
 
 /* ─── Team Badge ─── */
 .team-badge {
     display: inline-block;
-    background: linear-gradient(135deg, rgba(0,210,255,0.15), rgba(58,123,213,0.08));
-    padding: 6px 22px;
+    background: linear-gradient(135deg, rgba(0,210,255,0.12), rgba(58,123,213,0.06));
+    padding: 6px 24px;
     border-radius: 40px;
-    border: 1px solid rgba(0,210,255,0.12);
-    font-size: 0.75rem;
+    border: 1px solid rgba(0,210,255,0.1);
+    font-size: 0.7rem;
     font-weight: 700;
     color: #00d2ff;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     text-transform: uppercase;
     margin-bottom: 0.8rem;
+}
+
+/* ─── PS4 Badge ─── */
+.ps4-badge {
+    display: inline-block;
+    background: rgba(255, 200, 0, 0.08);
+    padding: 4px 18px;
+    border-radius: 40px;
+    border: 1px solid rgba(255, 200, 0, 0.1);
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #ffd700;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
 }
 
 /* ─── Headers ─── */
 h1, h2, h3 {
     font-weight: 800 !important;
-    background: linear-gradient(135deg, #ffffff 30%, #00d2ff 70%);
+    background: linear-gradient(135deg, #ffffff 25%, #00d2ff 65%, #3a7bd5 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
-h1 { font-size: 3.2rem !important; line-height: 1.05 !important; }
+h1 { font-size: 3.5rem !important; line-height: 1.05 !important; }
 h2 { font-size: 2rem !important; }
 h3 { font-size: 1.2rem !important; }
 
 /* ─── Glass Cards ─── */
 .glass-card {
     background: rgba(255,255,255,0.02);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.04);
-    border-radius: 18px;
-    padding: 20px 18px;
+    border-radius: 20px;
+    padding: 24px 22px;
     transition: all 0.3s ease;
     height: 100%;
 }
 .glass-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
     border-color: rgba(0,210,255,0.08);
+    box-shadow: 0 12px 40px 0 rgba(0,210,255,0.04);
 }
 
 /* ─── Feature Cards ─── */
 .feature-card {
     background: rgba(255,255,255,0.015);
     border: 1px solid rgba(255,255,255,0.04);
-    border-radius: 16px;
-    padding: 20px 16px;
+    border-radius: 18px;
+    padding: 24px 18px;
     text-align: center;
-    transition: all 0.3s ease;
+    transition: all 0.35s ease;
     height: 100%;
+    position: relative;
+    overflow: hidden;
 }
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 30%, rgba(0,210,255,0.03), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+.feature-card:hover::before { opacity: 1; }
 .feature-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(0,210,255,0.1);
+    transform: translateY(-6px);
+    border-color: rgba(0,210,255,0.12);
+    box-shadow: 0 16px 48px 0 rgba(0,210,255,0.04);
 }
-.feature-card .icon { font-size: 2.2rem; display: block; margin-bottom: 0.5rem; }
-.feature-card h4 { font-weight: 700; font-size: 1rem; color: #eef2ff; margin-bottom: 0.2rem; }
-.feature-card p { font-size: 0.8rem; color: #94a3b8; line-height: 1.4; }
+.feature-card .icon { font-size: 2.4rem; display: block; margin-bottom: 0.5rem; position: relative; }
+.feature-card h4 { font-weight: 700; font-size: 1.05rem; color: #eef2ff; margin-bottom: 0.2rem; position: relative; }
+.feature-card p { font-size: 0.82rem; color: #94a3b8; line-height: 1.5; position: relative; }
+.feature-card .badge {
+    display: inline-block;
+    background: rgba(0,210,255,0.06);
+    color: #00d2ff;
+    font-size: 0.55rem;
+    padding: 2px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(0,210,255,0.06);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+    position: relative;
+}
 
 /* ─── Metrics ─── */
 [data-testid="metric-container"] {
     background: rgba(255,255,255,0.02);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.03);
-    border-radius: 14px;
-    padding: 16px 14px;
+    border-radius: 16px;
+    padding: 18px 16px;
+    transition: all 0.3s ease;
 }
-[data-testid="metric-label"] { color: #94a3b8 !important; font-weight: 600 !important; font-size: 0.75rem !important; }
-[data-testid="metric-value"] { color: #eef2ff !important; font-weight: 800 !important; font-size: 1.8rem !important; }
+[data-testid="metric-container"]:hover {
+    transform: translateY(-3px);
+    border-color: rgba(0,210,255,0.06);
+}
+[data-testid="metric-label"] {
+    color: #94a3b8 !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+}
+[data-testid="metric-value"] {
+    color: #eef2ff !important;
+    font-weight: 800 !important;
+    font-size: 1.8rem !important;
+}
 
 /* ─── Buttons ─── */
 .stButton > button {
     background: linear-gradient(135deg, #00d2ff, #3a7bd5) !important;
     border: none !important;
     border-radius: 40px !important;
-    padding: 0.5rem 1.6rem !important;
+    padding: 0.55rem 1.8rem !important;
     font-weight: 700 !important;
     color: #0a0918 !important;
-    transition: all 0.2s ease !important;
+    transition: all 0.25s ease !important;
+    box-shadow: 0 4px 20px 0 rgba(0,210,255,0.08) !important;
 }
-.stButton > button:hover { transform: scale(1.03); box-shadow: 0 4px 20px 0 rgba(0,210,255,0.15); }
+.stButton > button:hover {
+    transform: scale(1.04);
+    box-shadow: 0 8px 32px 0 rgba(0,210,255,0.15) !important;
+}
 
 /* ─── Sidebar ─── */
 .css-1d391kg {
     background: rgba(10,9,24,0.85) !important;
-    backdrop-filter: blur(16px) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
     border-right: 1px solid rgba(255,255,255,0.02) !important;
 }
 
@@ -187,29 +270,81 @@ h3 { font-size: 1.2rem !important; }
     border: 1px solid rgba(255,255,255,0.03) !important;
     font-weight: 600 !important;
     color: #eef2ff !important;
-    padding: 8px 14px !important;
+    padding: 8px 16px !important;
+    transition: all 0.2s ease !important;
 }
+.streamlit-expanderHeader:hover {
+    background: rgba(255,255,255,0.02) !important;
+    border-color: rgba(0,210,255,0.04) !important;
+}
+
+/* ─── Alerts ─── */
+.stAlert { background: rgba(255,255,255,0.015) !important; border-radius: 12px !important; }
+.stSuccess { background: rgba(0,210,255,0.03) !important; border-color: rgba(0,210,255,0.06) !important; }
+.stWarning { background: rgba(255,165,0,0.03) !important; border-color: rgba(255,165,0,0.06) !important; }
+.stError { background: rgba(255,0,0,0.03) !important; border-color: rgba(255,0,0,0.06) !important; }
+.stInfo { background: rgba(0,210,255,0.02) !important; border-color: rgba(0,210,255,0.04) !important; }
 
 /* ─── Footer ─── */
 .footer {
     text-align: center;
-    padding: 20px 0 10px;
+    padding: 24px 0 12px;
     border-top: 1px solid rgba(255,255,255,0.02);
     font-size: 0.7rem;
     color: #475569;
 }
 .footer a { color: #00d2ff; text-decoration: none; font-weight: 600; }
-.footer .heart { color: #ff6b6b; display: inline-block; }
+.footer .heart { color: #ff6b6b; display: inline-block; animation: heartBeat 1.5s ease-in-out infinite; }
+@keyframes heartBeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+/* ─── Story Section ─── */
+.story-highlight {
+    background: rgba(0,210,255,0.03);
+    padding: 4px 12px;
+    border-radius: 6px;
+    color: #00d2ff;
+    font-weight: 600;
+}
 
 /* ─── Responsive ─── */
 @media (max-width: 768px) {
-    h1 { font-size: 2rem !important; }
+    h1 { font-size: 2.2rem !important; }
     h2 { font-size: 1.5rem !important; }
-    .glass-card { padding: 14px 12px; }
-    .feature-card { padding: 14px 12px; }
-    [data-testid="metric-value"] { font-size: 1.3rem !important; }
+    .glass-card { padding: 16px 14px; }
+    .feature-card { padding: 16px 14px; }
+    [data-testid="metric-value"] { font-size: 1.4rem !important; }
 }
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.01); }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #00d2ff, #3a7bd5); border-radius: 8px; }
 </style>
+
+<!-- Cursor Glow Animation -->
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<script>
+// Smooth Cursor Animation
+document.addEventListener('mousemove', function(e) {
+    const glow = document.getElementById('cursorGlow');
+    if (glow) {
+        glow.style.left = e.clientX + 'px';
+        glow.style.top = e.clientY + 'px';
+        
+        // Dynamic size change on movement speed
+        const speed = Math.sqrt((e.movementX || 0) ** 2 + (e.movementY || 0) ** 2);
+        if (speed > 20) {
+            glow.style.width = '420px';
+            glow.style.height = '420px';
+            setTimeout(() => {
+                glow.style.width = '350px';
+                glow.style.height = '350px';
+            }, 150);
+        }
+    }
+});
+</script>
 """, unsafe_allow_html=True)
 
 # ============================================
@@ -248,33 +383,38 @@ def api_request(method, endpoint, **kwargs):
         return None, str(e)[:80]
 
 # ============================================
-# HERO SECTION
+# HERO SECTION WITH STORYTELLING
 # ============================================
 st.markdown("""
 <div style="text-align:center;padding:5px 0 10px 0;">
+    <div class="ps4-badge">📋 PS4 · AI Agent Evaluation &amp; Reliability Engine</div>
     <div class="team-badge">🏆 Team Nawab_Coders · OOSC 4.0</div>
-    <h1 style="font-size:3.5rem;line-height:1.05;margin-bottom:0.3rem;">
+    <h1 style="font-size:3.8rem;line-height:1.05;margin-bottom:0.3rem;">
         Don't just evaluate.<br>
         <span style="background:linear-gradient(135deg,#00d2ff,#3a7bd5);
                      -webkit-background-clip:text;-webkit-text-fill-color:transparent;">
             Attack. Block. Fix. Verify.
         </span>
     </h1>
-    <p style="max-width:600px;margin:0 auto 1rem;color:#94a3b8;font-size:1rem;line-height:1.6;">
+    <p style="max-width:640px;margin:0 auto 1rem;color:#94a3b8;font-size:1.05rem;line-height:1.7;">
         AgentShield is an <strong style="color:#eef2ff;">active reliability engine</strong> for AI agents.
-        It generates adversarial tests, blocks destructive behavior, and proves fixes work.
+        It generates adversarial tests, blocks destructive behavior, and proves fixes work—<br>
+        <span style="color:#00d2ff;font-weight:600;">all before deployment.</span>
     </p>
 </div>
 """, unsafe_allow_html=True)
 
 # ============================================
-# PS4 STORY
+# STORYTELLING: PS4 FULL CONTEXT
 # ============================================
 st.markdown("""
-<div style="padding:5px 0;">
-    <h2 style="text-align:center;font-size:1.8rem;">Why <span style="color:#00d2ff;">PS4</span>?</h2>
-    <p style="text-align:center;color:#94a3b8;max-width:500px;margin:0 auto 0.8rem;font-size:0.95rem;">
-        The AI agent reliability gap is real. Here's how AgentShield closes it.
+<div style="padding:10px 0 15px 0;">
+    <h2 style="text-align:center;font-size:2rem;margin-bottom:0.3rem;">
+        Problem Statement 4: <span style="color:#00d2ff;">AI Agent Evaluation & Reliability Engine</span>
+    </h2>
+    <p style="text-align:center;color:#94a3b8;max-width:600px;margin:0 auto 0.8rem;font-size:0.95rem;">
+        Autonomous AI agents are increasingly deployed for consequential work, yet they fail <strong style="color:#ff6b6b;">~70%</strong> of real-world tasks.
+        Most teams test with a handful of manual prompts—missing critical failure modes until deployment.
     </p>
 </div>
 """, unsafe_allow_html=True)
@@ -284,19 +424,23 @@ c1, c2 = st.columns([1, 1])
 with c1:
     st.markdown("""
     <div class="glass-card">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-            <span style="font-size:1.6rem;">⚠️</span>
-            <span style="font-weight:800;font-size:1rem;color:#ff6b6b;">The Problem</span>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <span style="font-size:1.8rem;">⚠️</span>
+            <span style="font-weight:800;font-size:1.1rem;color:#ff6b6b;">The Problem</span>
         </div>
-        <p style="color:#94a3b8;line-height:1.7;font-size:0.9rem;">
-            <span style="background:rgba(255,50,50,0.08);padding:2px 10px;border-radius:20px;color:#ff6b6b;font-weight:700;">70%</span>
-            of AI agents fail on real-world tasks. Most tools only tell you 
-            <em style="color:#eef2ff;">after</em> deployment.
+        <p style="color:#94a3b8;line-height:1.8;font-size:0.95rem;">
+            <span style="background:rgba(255,50,50,0.08);padding:2px 12px;border-radius:20px;color:#ff6b6b;font-weight:700;">70%</span>
+            of AI agents fail in production. Teams rely on <span class="story-highlight">manual test prompts</span>,
+            missing critical failures like:
         </p>
-        <br>
-        <p style="color:#94a3b8;line-height:1.7;font-size:0.9rem;">
-            <span style="color:#00d2ff;font-weight:700;">AgentShield</span> tests agents 
-            <strong style="color:#eef2ff;">before</strong> they go live.
+        <ul style="color:#94a3b8;font-size:0.9rem;line-height:1.8;padding-left:20px;">
+            <li>🔄 <strong style="color:#eef2ff;">Tool-call loops</strong></li>
+            <li>🤥 <strong style="color:#eef2ff;">Hallucinated confidence</strong></li>
+            <li>💥 <strong style="color:#eef2ff;">Unsafe destructive actions</strong></li>
+            <li>🎯 <strong style="color:#eef2ff;">Silent goal drift</strong></li>
+        </ul>
+        <p style="color:#94a3b8;line-height:1.7;font-size:0.9rem;margin-top:8px;">
+            These failures surface <strong style="color:#ff6b6b;">after</strong> deployment—when the damage is already done.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -304,21 +448,26 @@ with c1:
 with c2:
     st.markdown("""
     <div class="glass-card" style="text-align:center;">
-        <div style="font-size:2.5rem;margin-bottom:8px;">🔄</div>
-        <div style="font-weight:700;font-size:1rem;margin-bottom:10px;color:#eef2ff;">The AgentShield Flow</div>
-        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 4px;font-size:0.75rem;color:#94a3b8;">
-            <span style="background:rgba(255,255,255,0.03);padding:4px 12px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">🔍 Attack</span>
+        <div style="font-size:2.8rem;margin-bottom:8px;">🛡️</div>
+        <div style="font-weight:700;font-size:1.1rem;margin-bottom:10px;color:#eef2ff;">The AgentShield Solution</div>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 6px;font-size:0.8rem;color:#94a3b8;">
+            <span style="background:rgba(0,210,255,0.05);padding:6px 14px;border-radius:40px;border:1px solid rgba(0,210,255,0.05);">🔍 Attack</span>
             <span style="color:#00d2ff;">→</span>
-            <span style="background:rgba(255,255,255,0.03);padding:4px 12px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">🛡️ Block</span>
+            <span style="background:rgba(0,210,255,0.05);padding:6px 14px;border-radius:40px;border:1px solid rgba(0,210,255,0.05);">🛡️ Block</span>
             <span style="color:#00d2ff;">→</span>
-            <span style="background:rgba(255,255,255,0.03);padding:4px 12px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">🧠 Root Cause</span>
+            <span style="background:rgba(0,210,255,0.05);padding:6px 14px;border-radius:40px;border:1px solid rgba(0,210,255,0.05);">🧠 Root Cause</span>
             <span style="color:#00d2ff;">→</span>
-            <span style="background:rgba(255,255,255,0.03);padding:4px 12px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">🔧 Fix</span>
+            <span style="background:rgba(0,210,255,0.05);padding:6px 14px;border-radius:40px;border:1px solid rgba(0,210,255,0.05);">🔧 Fix</span>
             <span style="color:#00d2ff;">→</span>
-            <span style="background:rgba(255,255,255,0.03);padding:4px 12px;border-radius:40px;border:1px solid rgba(255,255,255,0.03);">✅ Verify</span>
+            <span style="background:rgba(0,210,255,0.05);padding:6px 14px;border-radius:40px;border:1px solid rgba(0,210,255,0.05);">✅ Verify</span>
         </div>
-        <div style="margin-top:8px;font-size:0.6rem;color:#475569;">
-            Pre-deployment · Sandboxed · Actionable
+        <div style="margin-top:12px;color:#94a3b8;font-size:0.85rem;line-height:1.6;">
+            <span style="color:#00d2ff;font-weight:600;">Pre-deployment</span> · Sandboxed · Actionable
+        </div>
+        <div style="margin-top:10px;padding:10px;background:rgba(0,210,255,0.03);border-radius:12px;border:1px solid rgba(0,210,255,0.04);">
+            <span style="color:#00d2ff;font-weight:600;">Result:</span>
+            <span style="color:#eef2ff;">94% reliability</span>
+            <span style="color:#94a3b8;">(from 61%)</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -329,14 +478,17 @@ with c2:
 with st.sidebar:
     st.markdown("""
     <div style="text-align:center;padding:10px 0 12px;border-bottom:1px solid rgba(255,255,255,0.02);">
-        <div style="font-size:2rem;">🛡️</div>
+        <div style="font-size:2.2rem;">🛡️</div>
         <div style="font-weight:800;font-size:1.1rem;background:linear-gradient(135deg,#ffffff 30%,#00d2ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
             AgentShield
+        </div>
+        <div style="font-size:0.55rem;color:#ffd700;letter-spacing:0.5px;font-weight:600;margin-top:2px;">
+            PS4 · Reliability Engine
         </div>
         <div style="font-size:0.6rem;color:#00d2ff;letter-spacing:0.5px;font-weight:600;">
             ⚡ Team Nawab_Coders
         </div>
-        <div style="font-size:0.5rem;color:#475569;">v4.2.0 · OOSC 4.0</div>
+        <div style="font-size:0.5rem;color:#475569;">v4.3.0 · OOSC 4.0</div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -425,7 +577,7 @@ with st.sidebar:
     st.divider()
     if st.session_state.tests_generated:
         st.caption(f"📋 {len(st.session_state.scenarios)} scenarios")
-    st.caption("🛡️ v4.2.0")
+    st.caption("🛡️ v4.3.0")
 
 # ============================================
 # METRICS
@@ -535,7 +687,7 @@ else:
 # FEATURES GRID
 # ============================================
 st.markdown("""
-<div style="padding:15px 0 5px 0;">
+<div style="padding:20px 0 5px 0;">
     <h2 style="text-align:center;font-size:1.8rem;">Core <span style="color:#00d2ff;">Capabilities</span></h2>
     <p style="text-align:center;color:#94a3b8;max-width:500px;margin:0 auto 0.8rem;font-size:0.9rem;">
         Every feature closes the loop from test to production.
@@ -544,27 +696,28 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 features = [
-    ("🔥", "Action Firewall", "Real-time risk scoring & blocking of destructive tool calls."),
-    ("🐺", "Feral Agent", "An AI adversary that actively tries to break your agent."),
-    ("🧠", "Self-Evolving Tests", "Learns from production failures and generates new tests."),
-    ("🔍", "Root Cause Graph", "Visual chain from input to root cause of failure."),
-    ("🦜", "Canary Testing", "Detects data exfiltration with canary tokens."),
-    ("💰", "Cost Analytics", "Track test costs in USD & INR. Optimize your spend.")
+    ("🔥", "Action Firewall", "Real-time risk scoring & blocking of destructive tool calls.", "CRITICAL"),
+    ("🐺", "Feral Agent", "An AI adversary that actively tries to break your agent.", "AI-POWERED"),
+    ("🧠", "Self-Evolving Tests", "Learns from production failures and generates new tests.", "ADAPTIVE"),
+    ("🔍", "Root Cause Graph", "Visual chain from input to root cause of failure.", "DEBUG"),
+    ("🦜", "Canary Testing", "Detects data exfiltration with canary tokens.", "SECURITY"),
+    ("💰", "Cost Analytics", "Track test costs in USD & INR. Optimize your spend.", "OPTIMIZE")
 ]
 
 cols = st.columns(3)
-for i, (icon, title, desc) in enumerate(features):
+for i, (icon, title, desc, badge) in enumerate(features):
     with cols[i % 3]:
         st.markdown(f"""
         <div class="feature-card">
             <span class="icon">{icon}</span>
             <h4>{title}</h4>
             <p>{desc}</p>
+            <span class="badge">{badge}</span>
         </div>
         """, unsafe_allow_html=True)
 
 # ============================================
-# EXPANDERS
+# EXPANDERS (All Features)
 # ============================================
 
 # ─── Test Scenarios ───
@@ -1048,11 +1201,11 @@ with st.expander("📊 Raw Report JSON"):
 # ============================================
 st.markdown(f"""
 <div class="footer">
-    🛡️ <strong>AgentShield</strong> v4.2.0 · Built with <span class="heart">❤</span> by 
+    🛡️ <strong>AgentShield</strong> v4.3.0 · Built with <span class="heart">❤</span> by 
     <strong style="color:#00d2ff;">Team Nawab_Coders</strong> · OOSC 4.0 · IIIT Allahabad
     <br>
     <span style="color:#475569;font-size:0.65rem;">
-        PS4 · AI Agent Evaluation &amp; Reliability Engine · 
+        <strong style="color:#ffd700;">PS4</strong> · AI Agent Evaluation &amp; Reliability Engine · 
         <a href="https://github.com/Suryanshu-Singh-cyber/Agentshield" target="_blank">GitHub</a>
     </span>
 </div>
