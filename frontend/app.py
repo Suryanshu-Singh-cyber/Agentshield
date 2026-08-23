@@ -1,8 +1,7 @@
 # frontend/app.py
-# AGENTSHIELD - OPTIMIZED WORKING VERSION
+# AGENTSHIELD - SIMPLIFIED WORKING VERSION
 # Team: Nawab_Coders
 # OOSC 4.0 Hackathon · IIIT Allahabad
-# Version: 4.2.0
 
 import streamlit as st
 import requests
@@ -23,260 +22,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# ============================================
-# ENVIRONMENT DETECTION
-# ============================================
-def get_api_url():
-    try:
-        if st.secrets.get("IS_STREAMLIT_CLOUD", "false") == "true":
-            return st.secrets.get("AGENTSHIELD_API_URL", "https://agentshield-api.onrender.com")
-    except:
-        pass
-    
-    if os.getenv("IS_STREAMLIT_CLOUD", "false") == "true":
-        return os.getenv("AGENTSHIELD_API_URL", "https://agentshield-api.onrender.com")
-    
-    return "http://localhost:8000"
-
-API_URL = get_api_url()
-
-# ============================================
-# OPTIMIZED CSS (No Lag)
-# ============================================
-def load_css():
-    st.markdown("""
-    <style>
-    /* ─── Font ─── */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-
-    /* ─── Base ─── */
-    .stApp {
-        background: linear-gradient(135deg, #0a0918, #1a0f2e, #0f1a2e, #0a0918);
-        color: #eef2ff;
-        font-family: 'Inter', sans-serif;
-    }
-
-    /* ─── Team Badge ─── */
-    .team-badge {
-        display: inline-block;
-        background: linear-gradient(135deg, rgba(0,210,255,0.15), rgba(58,123,213,0.08));
-        padding: 6px 22px;
-        border-radius: 40px;
-        border: 1px solid rgba(0,210,255,0.12);
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: #00d2ff;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        margin-bottom: 0.8rem;
-    }
-
-    /* ─── Splash Screen ─── */
-    #splash-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 99999;
-        background: #0a0918;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        transition: opacity 0.6s ease, visibility 0.6s ease;
-        font-family: 'Inter', sans-serif;
-    }
-    #splash-screen.hide {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-    }
-    .splash-icon { font-size: 4.5rem; animation: pulse 1.5s ease-in-out infinite; }
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 0.7; }
-        50% { transform: scale(1.05); opacity: 1; }
-    }
-    .splash-title {
-        font-size: 3rem;
-        font-weight: 900;
-        background: linear-gradient(135deg, #ffffff 20%, #00d2ff 50%, #3a7bd5 80%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .splash-sub {
-        color: #94a3b8;
-        font-size: 0.85rem;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-        margin-top: 0.3rem;
-    }
-    .splash-team {
-        margin-top: 1rem;
-        padding: 0.3rem 1.6rem;
-        border: 1px solid rgba(0,210,255,0.12);
-        border-radius: 40px;
-        font-size: 0.7rem;
-        color: #00d2ff;
-        background: rgba(0,210,255,0.04);
-        letter-spacing: 0.5px;
-    }
-    .splash-loader {
-        margin-top: 1.5rem;
-        width: 150px;
-        height: 2px;
-        background: rgba(255,255,255,0.05);
-        border-radius: 2px;
-        overflow: hidden;
-    }
-    .splash-loader::after {
-        content: '';
-        display: block;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, #00d2ff, #3a7bd5, transparent);
-        animation: loadSlide 1.5s ease-in-out infinite;
-    }
-    @keyframes loadSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
-    /* ─── Headers ─── */
-    h1, h2, h3 {
-        font-weight: 800 !important;
-        background: linear-gradient(135deg, #ffffff 30%, #00d2ff 70%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    h1 { font-size: 3.2rem !important; line-height: 1.05 !important; }
-    h2 { font-size: 2rem !important; }
-    h3 { font-size: 1.2rem !important; }
-
-    /* ─── Glass Cards ─── */
-    .glass-card {
-        background: rgba(255,255,255,0.02);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.04);
-        border-radius: 18px;
-        padding: 20px 18px;
-        transition: all 0.3s ease;
-        height: 100%;
-    }
-    .glass-card:hover {
-        transform: translateY(-3px);
-        border-color: rgba(0,210,255,0.08);
-        box-shadow: 0 8px 30px 0 rgba(0,210,255,0.03);
-    }
-
-    /* ─── Feature Cards ─── */
-    .feature-card {
-        background: rgba(255,255,255,0.015);
-        border: 1px solid rgba(255,255,255,0.04);
-        border-radius: 16px;
-        padding: 20px 16px;
-        text-align: center;
-        transition: all 0.3s ease;
-        height: 100%;
-    }
-    .feature-card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(0,210,255,0.1);
-        box-shadow: 0 8px 24px 0 rgba(0,210,255,0.03);
-    }
-    .feature-card .icon { font-size: 2.2rem; display: block; margin-bottom: 0.5rem; }
-    .feature-card h4 { font-weight: 700; font-size: 1rem; color: #eef2ff; margin-bottom: 0.2rem; }
-    .feature-card p { font-size: 0.8rem; color: #94a3b8; line-height: 1.4; }
-
-    /* ─── Metrics ─── */
-    [data-testid="metric-container"] {
-        background: rgba(255,255,255,0.02);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255,255,255,0.03);
-        border-radius: 14px;
-        padding: 16px 14px;
-    }
-    [data-testid="metric-label"] { color: #94a3b8 !important; font-weight: 600 !important; font-size: 0.75rem !important; }
-    [data-testid="metric-value"] { color: #eef2ff !important; font-weight: 800 !important; font-size: 1.8rem !important; }
-
-    /* ─── Buttons ─── */
-    .stButton > button {
-        background: linear-gradient(135deg, #00d2ff, #3a7bd5) !important;
-        border: none !important;
-        border-radius: 40px !important;
-        padding: 0.5rem 1.6rem !important;
-        font-weight: 700 !important;
-        color: #0a0918 !important;
-        transition: all 0.2s ease !important;
-    }
-    .stButton > button:hover { transform: scale(1.03); box-shadow: 0 4px 20px 0 rgba(0,210,255,0.15); }
-
-    /* ─── Sidebar ─── */
-    .css-1d391kg {
-        background: rgba(10,9,24,0.85) !important;
-        backdrop-filter: blur(16px) !important;
-        border-right: 1px solid rgba(255,255,255,0.02) !important;
-    }
-
-    /* ─── Expanders ─── */
-    .streamlit-expanderHeader {
-        background: rgba(255,255,255,0.01) !important;
-        border-radius: 12px !important;
-        border: 1px solid rgba(255,255,255,0.03) !important;
-        font-weight: 600 !important;
-        color: #eef2ff !important;
-        padding: 8px 14px !important;
-    }
-    .streamlit-expanderHeader:hover { background: rgba(255,255,255,0.02) !important; }
-
-    /* ─── Alerts ─── */
-    .stAlert { background: rgba(255,255,255,0.015) !important; border-radius: 12px !important; }
-    .stSuccess { background: rgba(0,210,255,0.03) !important; border-color: rgba(0,210,255,0.06) !important; }
-    .stWarning { background: rgba(255,165,0,0.03) !important; border-color: rgba(255,165,0,0.06) !important; }
-    .stError { background: rgba(255,0,0,0.03) !important; border-color: rgba(255,0,0,0.06) !important; }
-
-    /* ─── Footer ─── */
-    .footer {
-        text-align: center;
-        padding: 20px 0 10px;
-        border-top: 1px solid rgba(255,255,255,0.02);
-        font-size: 0.7rem;
-        color: #475569;
-    }
-    .footer a { color: #00d2ff; text-decoration: none; font-weight: 600; }
-    .footer .heart { color: #ff6b6b; display: inline-block; animation: heartBeat 1.5s ease-in-out infinite; }
-    @keyframes heartBeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-
-    /* ─── Responsive ─── */
-    @media (max-width: 768px) {
-        h1 { font-size: 2rem !important; }
-        h2 { font-size: 1.5rem !important; }
-        .glass-card { padding: 14px 12px; }
-        .feature-card { padding: 14px 12px; }
-        .splash-title { font-size: 2rem; }
-        [data-testid="metric-value"] { font-size: 1.3rem !important; }
-    }
-    </style>
-
-    <!-- Splash Screen -->
-    <div id="splash-screen">
-        <div class="splash-icon">🛡️</div>
-        <div class="splash-title">AgentShield</div>
-        <div class="splash-sub">OOSC 4.0 · IIIT Allahabad</div>
-        <div class="splash-team">⚡ Team Nawab_Coders</div>
-        <div class="splash-loader"></div>
-    </div>
-
-    <script>
-    // Auto-hide splash after 3.5 seconds
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-            var splash = document.getElementById('splash-screen');
-            if (splash) splash.classList.add('hide');
-        }, 3500);
-    });
-    </script>
-    """, unsafe_allow_html=True)
-
-load_css()
 
 # ============================================
 # SESSION STATE
@@ -313,6 +58,159 @@ if "canary_report" not in st.session_state:
     st.session_state.canary_report = None
 if "fix_history" not in st.session_state:
     st.session_state.fix_history = None
+
+# ============================================
+# ENVIRONMENT DETECTION
+# ============================================
+def get_api_url():
+    try:
+        if st.secrets.get("IS_STREAMLIT_CLOUD", "false") == "true":
+            return st.secrets.get("AGENTSHIELD_API_URL", "https://agentshield-api.onrender.com")
+    except:
+        pass
+    
+    if os.getenv("IS_STREAMLIT_CLOUD", "false") == "true":
+        return os.getenv("AGENTSHIELD_API_URL", "https://agentshield-api.onrender.com")
+    
+    return "http://localhost:8000"
+
+API_URL = get_api_url()
+
+# ============================================
+# SIMPLE CSS (No Splash Screen)
+# ============================================
+st.markdown("""
+<style>
+/* ─── Font ─── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+/* ─── Base ─── */
+.stApp {
+    background: linear-gradient(135deg, #0a0918, #1a0f2e, #0f1a2e, #0a0918);
+    color: #eef2ff;
+    font-family: 'Inter', sans-serif;
+}
+
+/* ─── Team Badge ─── */
+.team-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(0,210,255,0.15), rgba(58,123,213,0.08));
+    padding: 6px 22px;
+    border-radius: 40px;
+    border: 1px solid rgba(0,210,255,0.12);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #00d2ff;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+}
+
+/* ─── Headers ─── */
+h1, h2, h3 {
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, #ffffff 30%, #00d2ff 70%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+h1 { font-size: 3.2rem !important; line-height: 1.05 !important; }
+h2 { font-size: 2rem !important; }
+h3 { font-size: 1.2rem !important; }
+
+/* ─── Glass Cards ─── */
+.glass-card {
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 18px;
+    padding: 20px 18px;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+.glass-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(0,210,255,0.08);
+}
+
+/* ─── Feature Cards ─── */
+.feature-card {
+    background: rgba(255,255,255,0.015);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 16px;
+    padding: 20px 16px;
+    text-align: center;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+.feature-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0,210,255,0.1);
+}
+.feature-card .icon { font-size: 2.2rem; display: block; margin-bottom: 0.5rem; }
+.feature-card h4 { font-weight: 700; font-size: 1rem; color: #eef2ff; margin-bottom: 0.2rem; }
+.feature-card p { font-size: 0.8rem; color: #94a3b8; line-height: 1.4; }
+
+/* ─── Metrics ─── */
+[data-testid="metric-container"] {
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.03);
+    border-radius: 14px;
+    padding: 16px 14px;
+}
+[data-testid="metric-label"] { color: #94a3b8 !important; font-weight: 600 !important; font-size: 0.75rem !important; }
+[data-testid="metric-value"] { color: #eef2ff !important; font-weight: 800 !important; font-size: 1.8rem !important; }
+
+/* ─── Buttons ─── */
+.stButton > button {
+    background: linear-gradient(135deg, #00d2ff, #3a7bd5) !important;
+    border: none !important;
+    border-radius: 40px !important;
+    padding: 0.5rem 1.6rem !important;
+    font-weight: 700 !important;
+    color: #0a0918 !important;
+    transition: all 0.2s ease !important;
+}
+.stButton > button:hover { transform: scale(1.03); box-shadow: 0 4px 20px 0 rgba(0,210,255,0.15); }
+
+/* ─── Sidebar ─── */
+.css-1d391kg {
+    background: rgba(10,9,24,0.85) !important;
+    backdrop-filter: blur(16px) !important;
+    border-right: 1px solid rgba(255,255,255,0.02) !important;
+}
+
+/* ─── Expanders ─── */
+.streamlit-expanderHeader {
+    background: rgba(255,255,255,0.01) !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255,255,255,0.03) !important;
+    font-weight: 600 !important;
+    color: #eef2ff !important;
+    padding: 8px 14px !important;
+}
+
+/* ─── Footer ─── */
+.footer {
+    text-align: center;
+    padding: 20px 0 10px;
+    border-top: 1px solid rgba(255,255,255,0.02);
+    font-size: 0.7rem;
+    color: #475569;
+}
+.footer a { color: #00d2ff; text-decoration: none; font-weight: 600; }
+.footer .heart { color: #ff6b6b; display: inline-block; }
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+    h1 { font-size: 2rem !important; }
+    h2 { font-size: 1.5rem !important; }
+    .glass-card { padding: 14px 12px; }
+    .feature-card { padding: 14px 12px; }
+    [data-testid="metric-value"] { font-size: 1.3rem !important; }
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ============================================
 # API FUNCTIONS
@@ -634,7 +532,7 @@ else:
     st.info("👈 Generate and run tests to see results!")
 
 # ============================================
-# FEATURES GRID (FIXED - VISIBLE NOW)
+# FEATURES GRID
 # ============================================
 st.markdown("""
 <div style="padding:15px 0 5px 0;">
@@ -666,7 +564,7 @@ for i, (icon, title, desc) in enumerate(features):
         """, unsafe_allow_html=True)
 
 # ============================================
-# EXPANDERS (All Features)
+# EXPANDERS
 # ============================================
 
 # ─── Test Scenarios ───
