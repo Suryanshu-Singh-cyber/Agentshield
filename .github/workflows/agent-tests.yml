@@ -1,5 +1,5 @@
 # .github/workflows/agent-tests.yml
-# CI/CD Integration - Automatic testing on PRs
+# AgentShield CI/CD Pipeline - FIXED VERSION
 
 name: AgentShield CI/CD Pipeline
 
@@ -8,7 +8,7 @@ on:
     branches: [main, develop]
   push:
     branches: [main]
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   test-agent:
@@ -16,80 +16,144 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
       
-      - name: Install backend dependencies
+      - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
       
-      - name: Start AgentShield Backend
+      - name: Start backend server
         run: |
           cd backend
-          uvicorn app:app --host 0.0.0.0 --port 8000 &
-          sleep 5
-          # Check if backend is running
-          curl http://localhost:8000/health
+          python -c "
+          import uvicorn
+          import asyncio
+          import sys
+          import time
+          import threading
+          import requests
+          
+          # Start server in background
+          def run_server():
+              uvicorn.run('app:app', host='127.0.0.1', port=8000, log_level='error')
+          
+          server_thread = threading.Thread(target=run_server, daemon=True)
+          server_thread.start()
+          
+          # Wait for server to start
+          time.sleep(5)
+          
+          # Check if server is running
+          try:
+              resp = requests.get('http://127.0.0.1:8000/health', timeout=5)
+              if resp.status_code == 200:
+                  print('✅ Backend server started successfully')
+                  sys.exit(0)
+              else:
+                  print(f'❌ Server returned: {resp.status_code}')
+                  sys.exit(1)
+          except Exception as e:
+              print(f'❌ Server failed to start: {e}')
+              sys.exit(1)
+          "
       
-      - name: Run Test Suite
+      - name: Run test suite
         run: |
           python -c "
           import requests
           import time
           import json
+          import sys
+          
+          BASE_URL = 'http://127.0.0.1:8000'
           
           print('🚀 Running AgentShield Test Suite...')
+          print('=' * 50)
           
-          # 1. Generate Tests
-          print('📝 Generating tests...')
-          resp = requests.post('http://localhost:8000/generate-tests', json={'count': 25})
-          if resp.status_code != 200:
-              print(f'❌ Failed to generate tests: {resp.status_code}')
-              exit(1)
-          tests = resp.json()
-          print(f'✅ Generated {tests[\"count\"]} test scenarios')
+          # 1. Health check
+          print('📊 Checking backend health...')
+          try:
+              resp = requests.get(f'{BASE_URL}/health', timeout=10)
+              if resp.status_code != 200:
+                  print(f'❌ Health check failed: {resp.status_code}')
+                  sys.exit(1)
+              print('✅ Backend is healthy')
+          except Exception as e:
+              print(f'❌ Health check error: {e}')
+              sys.exit(1)
           
-          # 2. Run Tests
-          print('🏃 Running tests...')
-          resp = requests.post('http://localhost:8000/run-tests')
-          if resp.status_code != 200:
-              print(f'❌ Failed to run tests: {resp.status_code}')
-              exit(1)
-          report = resp.json()['report']
+          # 2. Generate tests
+          print('\n📝 Generating test scenarios...')
+          try:
+              resp = requests.post(f'{BASE_URL}/generate-tests', json={'count': 20}, timeout=30)
+              if resp.status_code != 200:
+                  print(f'❌ Generate tests failed: {resp.status_code}')
+                  sys.exit(1)
+              data = resp.json()
+              print(f'✅ Generated {data[\"count\"]} test scenarios')
+          except Exception as e:
+              print(f'❌ Generate tests error: {e}')
+              sys.exit(1)
           
-          # 3. Display Results
+          # 3. Run tests
+          print('\n🏃 Running test suite...')
+          try:
+              resp = requests.post(f'{BASE_URL}/run-tests', timeout=120)
+              if resp.status_code != 200:
+                  print(f'❌ Run tests failed: {resp.status_code}')
+                  print(f'Response: {resp.text[:200]}')
+                  sys.exit(1)
+              data = resp.json()
+              report = data.get('report', {})
+          except Exception as e:
+              print(f'❌ Run tests error: {e}')
+              sys.exit(1)
+          
+          # 4. Display results
           print('\n📊 Test Results:')
-          print(f'   Overall Reliability: {report[\"overall_reliability\"]}%')
-          print(f'   Safety Score: {report[\"safety_score\"]}%')
-          print(f'   Passed: {report[\"passed\"]}/{report[\"total_tests\"]}')
-          print(f'   Critical Failures: {report[\"critical_failures\"]}')
+          print('=' * 50)
+          print(f'   Overall Reliability: {report.get(\"overall_reliability\", 0)}%')
+          print(f'   Safety Score: {report.get(\"safety_score\", 0)}%')
+          print(f'   Passed: {report.get(\"passed\", 0)}/{report.get(\"total_tests\", 0)}')
+          print(f'   Critical Failures: {report.get(\"critical_failures\", 0)}')
           
-          # 4. Check if critical failures exist
-          if report['critical_failures'] > 0:
+          # 5. Check for critical failures
+          if report.get('critical_failures', 0) > 0:
               print('\n🚨 Critical failures found!')
               print('   Recommendations:')
-              for rec in report['recommendations']:
+              for rec in report.get('recommendations', [])[:3]:
                   print(f'   - {rec}')
-              exit(1)
+              print('\n❌ Tests FAILED - Critical issues detected')
+              sys.exit(1)
+          elif report.get('passed', 0) < report.get('total_tests', 1):
+              print('\n⚠️ Some tests failed but no critical issues')
+              print('   Review the full report for details')
+              print('❌ Tests FAILED')
+              sys.exit(1)
           else:
-              print('\n✅ All tests passed! Reliability score: {report[\"overall_reliability\"]}%')
-              exit(0)
+              print(f'\n✅ All {report.get(\"total_tests\", 0)} tests passed!')
+              print(f'   Reliability Score: {report.get(\"overall_reliability\", 0)}%')
+              print('✅ Tests PASSED')
+              sys.exit(0)
           "
       
-      - name: Upload Test Report
+      - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: agentshield-report
-          path: report.json
+          name: agentshield-test-report
+          path: |
+            report.json
+            test-results.json
       
-      - name: Notify on Failure
-        if: failure()
+      - name: Stop backend server
+        if: always()
         run: |
-          echo "🚨 AgentShield tests failed! Please review the failures."
-          echo "Check the uploaded artifact for detailed report."
+          pkill -f "uvicorn" || true
+          pkill -f "python.*app:app" || true
