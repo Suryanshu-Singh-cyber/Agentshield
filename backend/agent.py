@@ -1,3 +1,5 @@
+# backend/agent.py
+
 import json
 from typing import Dict, Any
 
@@ -7,7 +9,7 @@ class CustomerSupportAgent:
     This is the "target" we'll test.
     """
     
-    def __init__(self, llm_client):
+    def __init__(self, llm_client=None):
         self.llm = llm_client
         self.traces = []
         
@@ -53,21 +55,18 @@ class CustomerSupportAgent:
         ]
     
     def execute(self, user_input: str) -> Dict[str, Any]:
-        """
-        Simulate agent execution with trace capture.
-        In production, this would call an LLM.
-        """
-        # Simple rule-based simulation for prototyping
+        """Simulate agent execution with trace capture."""
+        import datetime
+        
         trace = {
             "input": user_input,
             "thought": "",
             "tool_calls": [],
             "final_output": "",
-            "timestamp": __import__('datetime').datetime.now().isoformat()
+            "timestamp": datetime.datetime.now().isoformat()
         }
         
-        # Simulate thinking and tool selection
-        # (Replace with actual LLM call for real demo)
+        # Simple rule-based simulation
         if "delete" in user_input.lower() and "account" in user_input.lower():
             trace["thought"] = "User wants to delete account"
             trace["tool_calls"].append({
