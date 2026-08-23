@@ -1,202 +1,119 @@
-# backend/app.py - FULL CORRECTED VERSION
+# backend/app.py - ADD THESE NEW IMPORTS AND ROUTES
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
-import json
-import os
-import uvicorn
+# Add these imports at the top
+from production_analyzer import ProductionAnalyzer
+from feral_agent import FeralAgent
+from root_cause import RootCauseAnalyzer
+from cost_tracker import CostTracker
 
-# ============================================
-# IMPORT YOUR MODULES
-# ============================================
-# Make sure these files exist in your backend folder
-from agent import CustomerSupportAgent
-from firewall import ActionFirewall
-from attack_generator import AttackGenerator
-from chaos_injector import ChaosInjector
-from evaluator import AgentEvaluator
+# Add these initializations after your existing ones
+production_analyzer = ProductionAnalyzer()
+feral_agent = FeralAgent()
+root_cause_analyzer = RootCauseAnalyzer()
+cost_tracker = CostTracker()
 
 # ============================================
-# APP INITIALIZATION
-# ============================================
-app = FastAPI(
-    title="AgentShield API",
-    version="1.0.0",
-    description="AI Agent Reliability Engineering Platform"
-)
-
-# CORS for Streamlit frontend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8501",
-        "http://localhost:8000",
-        "https://*.streamlit.app",
-        "https://*.onrender.com",
-        "*"  # Allow all for testing
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# ============================================
-# INITIALIZE COMPONENTS
-# ============================================
-firewall = ActionFirewall(mode="enforce")
-evaluator = AgentEvaluator()
-attack_gen = AttackGenerator(llm_client=None)
-chaos_injector = ChaosInjector()
-agent = CustomerSupportAgent(llm_client=None)
-
-# State
-test_results = []
-current_report = None
-
-# ============================================
-# API MODELS
-# ============================================
-class TestRequest(BaseModel):
-    count: int = 20
-
-class FixRequest(BaseModel):
-    recommendations: List[str]
-
-# ============================================
-# API ENDPOINTS (ALL ROUTES DEFINED HERE)
+# NEW API ENDPOINTS
 # ============================================
 
-@app.get("/")
-def root():
-    """Health check endpoint."""
-    return {"message": "AgentShield API", "status": "running"}
-
-@app.get("/health")
-def health():
-    """Detailed health check."""
-    return {
-        "status": "healthy",
-        "api_version": "1.0.0",
-        "chaos_enabled": chaos_injector.chaos_enabled,
-        "tests_generated": len(test_results) > 0,
-        "report_available": current_report is not None
-    }
-
-@app.get("/tools")
-def get_tools():
-    """Get the agent's tool definitions."""
+@app.post("/analyze-production")
+def analyze_production():
+    """
+    Analyze production logs and generate evolved tests.
+    """
     try:
-        tools = agent.get_tools()
-        return {"tools": tools}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/generate-tests")
-def generate_tests(request: TestRequest):
-    """
-    Generate adversarial test scenarios.
-    """
-    global test_results, current_report
-    try:
-        tools = agent.get_tools()
-        scenarios = attack_gen.generate_scenarios(tools, request.count)
-        test_results = scenarios
-        current_report = None  # Clear old report
-        return {
-            "count": len(scenarios),
-            "scenarios": scenarios
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/run-tests")
-def run_tests():
-    """
-    Run the test suite against the agent with firewall.
-    """
-    global test_results, current_report
-    if not test_results:
-        raise HTTPException(status_code=400, detail="No tests generated. Run /generate-tests first.")
-    
-    try:
-        results = evaluator.run_test_suite(agent, firewall, attack_gen, chaos_injector, test_results)
-        current_report = evaluator.generate_report()
-        return {
-            "results_count": len(results),
-            "passed": sum(1 for r in results if r.passed),
-            "report": current_report
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/report")
-def get_report():
-    """Get the latest reliability report."""
-    if not current_report:
-        raise HTTPException(status_code=404, detail="No report available. Run /run-tests first.")
-    return current_report
-
-@app.post("/apply-fix")
-def apply_fix(request: FixRequest):
-    """
-    Apply recommended fixes and re-run tests.
-    """
-    global current_report, test_results
-    
-    if not test_results:
-        raise HTTPException(status_code=400, detail="No tests available. Run /generate-tests first.")
-    
-    try:
-        # Apply fixes based on recommendations
-        for rec in request.recommendations:
-            if "confirmation" in rec.lower():
-                firewall.risk_threshold = 90
-            if "permissions" in rec.lower():
-                firewall.mode = "enforce"
+        # In production, this would read from a logging service
+        # For demo, use sample logs
+        sample_logs = [
+            {"user_query": "Delete my account please", "timestamp": "2026-08-23T10:00:00", "successful": True},
+            {"user_query": "Refund my last order", "timestamp": "2026-08-23T10:30:00", "successful": True},
+            {"user_query": "Can I get a refund on order #12345?", "timestamp": "2026-08-23T11:00:00", "successful": False},
+            {"user_query": "Show me my order history", "timestamp": "2026-08-23T11:30:00", "successful": True},
+            {"user_query": "I want to cancel my subscription", "timestamp": "2026-08-23T12:00:00", "successful": True}
+        ]
         
-        # Re-run tests
-        results = evaluator.run_test_suite(agent, firewall, attack_gen, chaos_injector, test_results)
-        current_report = evaluator.generate_report()
+        patterns = production_analyzer.analyze_logs(sample_logs)
+        evolved_tests = production_analyzer.generate_tests_from_patterns(patterns)
         
         return {
-            "status": "fixes_applied",
-            "new_reliability": current_report.get("overall_reliability", 0),
-            "report": current_report
+            "status": "success",
+            "patterns_analyzed": len(patterns),
+            "evolved_tests": len(evolved_tests),
+            "scenarios": evolved_tests[:10],  # Return first 10
+            "summary": production_analyzer.get_evolution_summary()
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/chaos-mode")
-def toggle_chaos(enable: bool):
+@app.post("/feral-attack")
+def feral_attack():
     """
-    Toggle chaos injection mode.
+    Generate and run a feral agent attack.
     """
-    global chaos_injector
+    global test_results, current_report, feral_agent
+    
     try:
-        chaos_injector.chaos_enabled = enable
+        tools = agent.get_tools()
+        tool_names = [t["name"] for t in tools]
+        
+        # Generate attack
+        attack = feral_agent.generate_attack(tool_names)
+        
+        # Run the attack
+        agent_result = agent.execute(attack["input"])
+        trace = agent_result.get("trace", {})
+        
+        # Firewall evaluation
+        tool_calls = trace.get("tool_calls", [])
+        if tool_calls:
+            tool_call = tool_calls[0]
+            firewall_decision = firewall.evaluate(
+                tool_call.get("tool", ""),
+                tool_call.get("arguments", {}),
+                attack["input"]
+            )
+            actual = firewall_decision.decision
+            risk_score = firewall_decision.risk_score
+            blocked_by = firewall_decision.blocked_by
+        else:
+            actual = "allow"
+            risk_score = 0
+            blocked_by = []
+        
+        # Record result
+        success = (actual == attack["expected_behavior"])
+        feral_agent.record_result(attack, success, {
+            "actual": actual,
+            "risk_score": risk_score,
+            "blocked_by": blocked_by
+        })
+        
         return {
-            "chaos_enabled": chaos_injector.chaos_enabled,
-            "status": "enabled" if enable else "disabled"
+            "attack": attack,
+            "result": {
+                "actual": actual,
+                "expected": attack["expected_behavior"],
+                "success": success,
+                "risk_score": risk_score,
+                "blocked_by": blocked_by,
+                "trace": trace
+            },
+            "feral_stats": feral_agent.get_stats()
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/chaos-history")
-def get_chaos_history():
-    """Get chaos injection history."""
+@app.get("/feral-stats")
+def get_feral_stats():
+    """
+    Get feral agent statistics.
+    """
     try:
-        return {
-            "history": chaos_injector.failure_history,
-            "count": len(chaos_injector.failure_history)
-        }
+        return feral_agent.get_stats()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# ============================================
-# FOR LOCAL DEVELOPMENT
-# ============================================
-if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+@app.post("/analyze-failures")
+def analyze_failures():
+    """
+    Analyze failures
