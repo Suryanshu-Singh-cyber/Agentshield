@@ -576,6 +576,9 @@ with st.expander("⚡ Per-Turn Evaluation"):
 # ============================================
 # 17. CANARY TESTING (NEW)
 # ============================================
+# ============================================
+# 17. CANARY TESTING (FIXED)
+# ============================================
 with st.expander("🦜 Canary Testing"):
     st.subheader("Data Exfiltration Detection")
     st.caption("Detect when agent tries to leak sensitive data")
@@ -605,12 +608,46 @@ with st.expander("🦜 Canary Testing"):
         if not st.session_state.api_connected:
             st.warning("Connect first!")
         else:
-            data, error = api_request("post", f"/create-canary?test_id={test_id}&data_type={data_type}", timeout=10)
-            if error:
-                st.error(f"❌ {error}")
-            else:
-                st.success("✅ Canary created!")
-                st.json(data)
+            with st.spinner("Creating canary..."):
+                # FIX: Send JSON body instead of query parameters
+                data, error = api_request("post", "/create-canary", 
+                                          json={"test_id": test_id, "data_type": data_type},
+                                          timeout=10)
+                if error:
+                    st.error(f"❌ {error}")
+                else:
+                    st.success("✅ Canary created!")
+                    st.json(data)
+    
+    # Check Exfiltration (New)
+    st.subheader("Check Response for Exfiltration")
+    response_json = st.text_area("Response JSON:", '{"user_id": "canary_123", "email": "test@example.com"}')
+    check_test_id = st.text_input("Test ID (optional):", "")
+    
+    if st.button("🔍 Check Exfiltration"):
+        if not st.session_state.api_connected:
+            st.warning("Connect first!")
+        else:
+            with st.spinner("Checking..."):
+                try:
+                    response_data = json.loads(response_json)
+                    payload = {"response": response_data}
+                    if check_test_id:
+                        payload["test_id"] = check_test_id
+                    
+                    data, error = api_request("post", "/check-exfiltration", 
+                                              json=payload,
+                                              timeout=10)
+                    if error:
+                        st.error(f"❌ {error}")
+                    else:
+                        if data.get("exfiltrated"):
+                            st.error("🚨 Data exfiltration detected!")
+                        else:
+                            st.success("✅ No exfiltration detected")
+                        st.json(data)
+                except json.JSONDecodeError:
+                    st.error("❌ Invalid JSON format")
 
 # ============================================
 # 18. FIX → PR GENERATION (NEW)
@@ -655,6 +692,9 @@ with st.expander("🔧 Fix → PR Generation"):
 
 # ============================================
 # 19. DATASET LOADER (NEW)
+# ============================================
+# ============================================
+# 19. DATASET LOADER (FIXED)
 # ============================================
 with st.expander("📚 Dataset Loader"):
     st.subheader("Evaluation Datasets")
@@ -721,7 +761,7 @@ with st.expander("📚 Dataset Loader"):
                         st.caption(f"  {key}: {value}")
     
     st.subheader("Generate Synthetic Dataset")
-    gen_name = st.text_input("Dataset Name:", "my_synthetic_dataset")
+    gen_name = st.text_input("Dataset Name (for generation):", "my_synthetic_dataset")
     gen_size = st.number_input("Size:", min_value=5, max_value=100, value=20)
     gen_type = st.selectbox("Type:", ["synthetic", "owasp", "mitre", "production"])
     
@@ -730,7 +770,15 @@ with st.expander("📚 Dataset Loader"):
             st.warning("Connect first!")
         else:
             with st.spinner("Generating..."):
-                data, error = api_request("post", f"/dataset/generate?name={gen_name}&size={gen_size}&dataset_type={gen_type}", timeout=30)
+                # FIX: Send JSON body
+                data, error = api_request("post", "/dataset/generate", 
+                                          json={
+                                              "name": gen_name,
+                                              "size": gen_size,
+                                              "dataset_type": gen_type,
+                                              "seed": 42
+                                          },
+                                          timeout=30)
                 if error:
                     st.error(f"❌ {error}")
                 else:
@@ -738,7 +786,7 @@ with st.expander("📚 Dataset Loader"):
                     st.json(data)
     
     st.subheader("Random Tests")
-    random_count = st.number_input("Count:", min_value=1, max_value=20, value=5)
+    random_count = st.number_input("Random Count:", min_value=1, max_value=20, value=5)
     if st.button("🎲 Get Random Tests"):
         if not st.session_state.api_connected:
             st.warning("Connect first!")
@@ -746,7 +794,20 @@ with st.expander("📚 Dataset Loader"):
             data, error = api_request("get", f"/dataset/random?count={random_count}", timeout=10)
             if not error:
                 st.json(data)
-
+    
+    st.subheader("Compare Datasets")
+    compare_name1 = st.text_input("Dataset 1:", "owasp_top_10")
+    compare_name2 = st.text_input("Dataset 2:", "mitre_attacks")
+    
+    if st.button("📊 Compare Datasets"):
+        if not st.session_state.api_connected:
+            st.warning("Connect first!")
+        else:
+            data, error = api_request("get", f"/dataset/compare?name1={compare_name1}&name2={compare_name2}", timeout=10)
+            if error:
+                st.error(f"❌ {error}")
+            else:
+                st.json(data)
 # ============================================
 # 20. RAW REPORT
 # ============================================
