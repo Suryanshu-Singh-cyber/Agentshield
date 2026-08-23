@@ -203,3 +203,95 @@ class CostTracker:
         self.total_api_calls = 0
         self.test_counter = 0
         self._generate_sample_costs()  # Regenerate sample data
+
+# backend/cost_tracker.py - ADD THESE NEW METHODS
+
+    # ============================================
+    # Cost-to-Fix Metrics
+    # ============================================
+    
+    def calculate_cost_to_fix(self, failure_id: str, fix_attempts: int = 1, 
+                              api_calls_used: int = 5, tokens_used: int = 2000) -> float:
+        """
+        Calculate the cost to fix a failure.
+        Key metric for enterprise users.
+        """
+        # Cost of diagnosing the failure
+        diagnosis_cost = self._calculate_cost(
+            api_calls=api_calls_used // 2,
+            tokens_used=tokens_used // 2
+        )
+        
+        # Cost of generating and testing the fix
+        fix_cost = self._calculate_cost(
+            api_calls=api_calls_used * fix_attempts,
+            tokens_used=tokens_used * fix_attempts
+        )
+        
+        # Cost of re-testing after fix
+        retest_cost = self._calculate_cost(
+            api_calls=api_calls_used // 2,
+            tokens_used=tokens_used // 2
+        )
+        
+        total_cost = diagnosis_cost + fix_cost + retest_cost
+        
+        return {
+            "failure_id": failure_id,
+            "diagnosis_cost_usd": round(diagnosis_cost, 6),
+            "fix_cost_usd": round(fix_cost, 6),
+            "retest_cost_usd": round(retest_cost, 6),
+            "total_cost_usd": round(total_cost, 6),
+            "total_cost_inr": round(total_cost * 83.5, 2),  # USD to INR
+            "fix_attempts": fix_attempts,
+            "recommendation": "✅ Cost is within acceptable range" if total_cost < 0.01 else "💡 Consider optimizing fix generation"
+        }
+    
+    def get_cost_to_fix_summary(self) -> Dict:
+        """
+        Get summary of all cost-to-fix metrics.
+        """
+        if not self.test_costs:
+            return {"message": "No cost data available"}
+        
+        total_tests = len(self.test_costs)
+        total_cost = sum(t.cost for t in self.test_costs)
+        
+        # Calculate average cost per test type
+        test_types = {}
+        for t in self.test_costs:
+            if t.test_type not in test_types:
+                test_types[t.test_type] = {"count": 0, "total_cost": 0}
+            test_types[t.test_type]["count"] += 1
+            test_types[t.test_type]["total_cost"] += t.cost
+        
+        avg_costs = {}
+        for tt, data in test_types.items():
+            avg_costs[tt] = {
+                "avg_cost_usd": round(data["total_cost"] / data["count"], 6),
+                "avg_cost_inr": round((data["total_cost"] / data["count"]) * 83.5, 2),
+                "count": data["count"]
+            }
+        
+        return {
+            "total_tests": total_tests,
+            "total_cost_usd": round(total_cost, 6),
+            "total_cost_inr": round(total_cost * 83.5, 2),
+            "avg_cost_per_test_usd": round(total_cost / total_tests, 6) if total_tests > 0 else 0,
+            "avg_cost_per_test_inr": round((total_cost / total_tests) * 83.5, 2) if total_tests > 0 else 0,
+            "cost_breakdown_by_type": avg_costs,
+            "estimated_cost_to_fix_all_failures": self._estimate_fix_all_cost()
+        }
+    
+    def _estimate_fix_all_cost(self) -> Dict:
+        """Estimate cost to fix all failures."""
+        failures = [t for t in self.test_costs if t.test_type == "fail"]
+        if not failures:
+            return {"message": "No failures to fix"}
+        
+        total_cost_usd = sum(t.cost for t in failures) * 5  # Rough estimate: fix costs 5x more
+        return {
+            "estimated_cost_usd": round(total_cost_usd, 6),
+            "estimated_cost_inr": round(total_cost_usd * 83.5, 2),
+            "failures_to_fix": len(failures)
+        }
