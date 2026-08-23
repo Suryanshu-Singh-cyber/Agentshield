@@ -1,0 +1,95 @@
+# .github/workflows/agent-tests.yml
+# CI/CD Integration - Automatic testing on PRs
+
+name: AgentShield CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  test-agent:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install backend dependencies
+        run: |
+          pip install -r backend/requirements.txt
+      
+      - name: Start AgentShield Backend
+        run: |
+          cd backend
+          uvicorn app:app --host 0.0.0.0 --port 8000 &
+          sleep 5
+          # Check if backend is running
+          curl http://localhost:8000/health
+      
+      - name: Run Test Suite
+        run: |
+          python -c "
+          import requests
+          import time
+          import json
+          
+          print('🚀 Running AgentShield Test Suite...')
+          
+          # 1. Generate Tests
+          print('📝 Generating tests...')
+          resp = requests.post('http://localhost:8000/generate-tests', json={'count': 25})
+          if resp.status_code != 200:
+              print(f'❌ Failed to generate tests: {resp.status_code}')
+              exit(1)
+          tests = resp.json()
+          print(f'✅ Generated {tests[\"count\"]} test scenarios')
+          
+          # 2. Run Tests
+          print('🏃 Running tests...')
+          resp = requests.post('http://localhost:8000/run-tests')
+          if resp.status_code != 200:
+              print(f'❌ Failed to run tests: {resp.status_code}')
+              exit(1)
+          report = resp.json()['report']
+          
+          # 3. Display Results
+          print('\n📊 Test Results:')
+          print(f'   Overall Reliability: {report[\"overall_reliability\"]}%')
+          print(f'   Safety Score: {report[\"safety_score\"]}%')
+          print(f'   Passed: {report[\"passed\"]}/{report[\"total_tests\"]}')
+          print(f'   Critical Failures: {report[\"critical_failures\"]}')
+          
+          # 4. Check if critical failures exist
+          if report['critical_failures'] > 0:
+              print('\n🚨 Critical failures found!')
+              print('   Recommendations:')
+              for rec in report['recommendations']:
+                  print(f'   - {rec}')
+              exit(1)
+          else:
+              print('\n✅ All tests passed! Reliability score: {report[\"overall_reliability\"]}%')
+              exit(0)
+          "
+      
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: agentshield-report
+          path: report.json
+      
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "🚨 AgentShield tests failed! Please review the failures."
+          echo "Check the uploaded artifact for detailed report."
