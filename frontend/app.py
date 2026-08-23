@@ -453,3 +453,206 @@ with st.expander("📊 Raw Report JSON"):
         st.json(report)
     else:
         st.write("Run tests to see the full report.")
+# frontend/app.py - ADD THESE NEW SECTIONS
+# Add these after your existing code (around line 300+)
+
+# ============================================
+# NEW SECTION: PRODUCTION ANALYZER
+# ============================================
+with st.expander("🧠 Self-Evolving Test Suite"):
+    st.subheader("Production Pattern Analyzer")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("📊 Analyze Production Logs", use_container_width=True):
+            with st.spinner("Analyzing production patterns..."):
+                try:
+                    resp = requests.post(f"{API_URL}/analyze-production", timeout=30)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        st.session_state.evolution_data = data
+                        st.success(f"✅ Analyzed {data.get('patterns_analyzed', 0)} patterns")
+                        st.rerun()
+                    else:
+                        st.error("❌ Failed to analyze")
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)[:100]}")
+    
+    with col2:
+        if st.button("🔄 Evolve Test Suite", use_container_width=True):
+            with st.spinner("Evolving test suite..."):
+                try:
+                    resp = requests.post(f"{API_URL}/evolve-tests", timeout=30)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        st.success(f"✅ Evolved {data.get('new_scenarios', 0)} new tests")
+                        st.rerun()
+                    else:
+                        st.error("❌ Failed to evolve")
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)[:100]}")
+    
+    # Show evolution data
+    if st.session_state.get("evolution_data"):
+        data = st.session_state.evolution_data
+        st.subheader("Evolution Summary")
+        summary = data.get("summary", {})
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Patterns Analyzed", summary.get("total_patterns", 0))
+        with col2:
+            st.metric("Evolved Tests", summary.get("total_evolved_tests", 0))
+        with col3:
+            st.metric("Last Analysis", summary.get("last_analysis", "Never")[:10] if summary.get("last_analysis") else "Never")
+
+# ============================================
+# NEW SECTION: FERAL AGENT
+# ============================================
+with st.expander("🐺 Feral Agent - AI vs AI Testing"):
+    st.subheader("The Feral Agent attacks your AI")
+    st.caption("A secondary AI that actively tries to break your primary agent")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("⚔️ Launch Feral Attack", use_container_width=True):
+            with st.spinner("Generating feral attack..."):
+                try:
+                    resp = requests.post(f"{API_URL}/feral-attack", timeout=30)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        st.session_state.feral_result = data
+                        st.success("✅ Feral attack executed!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Failed to launch attack")
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)[:100]}")
+    
+    with col2:
+        if st.button("📊 Feral Stats", use_container_width=True):
+            with st.spinner("Fetching stats..."):
+                try:
+                    resp = requests.get(f"{API_URL}/feral-stats")
+                    if resp.status_code == 200:
+                        st.session_state.feral_stats = resp.json()
+                        st.rerun()
+                    else:
+                        st.error("❌ Failed to fetch stats")
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)[:100]}")
+    
+    # Show feral attack result
+    if st.session_state.get("feral_result"):
+        result = st.session_state.feral_result
+        attack = result.get("attack", {})
+        attack_result = result.get("result", {})
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Attack Type", attack.get("attack_type", "N/A"))
+        with col2:
+            st.metric("Success", "✅" if attack_result.get("success") else "❌")
+        with col3:
+            st.metric("Risk Score", f"{attack_result.get('risk_score', 0)}%")
+        
+        st.text_area("Attack Input", attack.get("input", ""), height=60)
+        st.text_area("Result", f"Expected: {attack.get('expected_behavior')} | Actual: {attack_result.get('actual')}", height=40)
+    
+    # Show feral stats
+    if st.session_state.get("feral_stats"):
+        stats = st.session_state.feral_stats
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Attacks", stats.get("total_attacks", 0))
+        with col2:
+            st.metric("Successful", stats.get("successful_attacks", 0))
+        with col3:
+            st.metric("Success Rate", f"{stats.get('success_rate', 0)}%")
+        with col4:
+            st.metric("Mutations", stats.get("total_mutations", 0))
+
+# ============================================
+# NEW SECTION: ROOT CAUSE GRAPH
+# ============================================
+with st.expander("🔍 Root Cause Graph"):
+    st.subheader("Failure Taxonomy & Root Cause Analysis")
+    
+    if st.button("📊 Analyze Failures", use_container_width=True):
+        with st.spinner("Analyzing failures..."):
+            try:
+                resp = requests.post(f"{API_URL}/analyze-failures", timeout=30)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    st.session_state.root_cause = data
+                    st.rerun()
+                else:
+                    st.error("❌ Failed to analyze failures")
+            except Exception as e:
+                st.error(f"❌ Error: {str(e)[:100]}")
+    
+    if st.session_state.get("root_cause"):
+        data = st.session_state.root_cause
+        
+        # Taxonomy Breakdown
+        st.subheader("Taxonomy Breakdown")
+        taxonomy = data.get("taxonomy_breakdown", {})
+        if taxonomy:
+            for category, info in taxonomy.items():
+                st.metric(f"{category}", info.get("count", 0), help=info.get("description", ""))
+        
+        # Critical Failures
+        if data.get("critical_failures"):
+            st.subheader("Critical Failures")
+            for f in data["critical_failures"][:3]:
+                st.warning(f"🔥 {f.get('root_cause', 'Unknown')}")
+                st.caption(f"Fix: {f.get('fix', 'Review')}")
+        
+        # Failure Chains
+        st.subheader("Failure Chains")
+        chains = data.get("failure_chains", [])[:3]
+        for chain in chains:
+            with st.expander(f"🔗 {chain.get('input', '')[:60]}..."):
+                for step in chain.get("chain", []):
+                    st.caption(f"Step {step.get('step')}: {step.get('event')} → {step.get('detail')}")
+
+# ============================================
+# NEW SECTION: COST TRACKER
+# ============================================
+with st.expander("💰 Cost-Per-Test Analytics"):
+    st.subheader("Test Cost Tracking")
+    
+    if st.button("📊 Get Cost Summary", use_container_width=True):
+        with st.spinner("Fetching cost data..."):
+            try:
+                resp = requests.get(f"{API_URL}/cost-summary", timeout=30)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    st.session_state.cost_data = data
+                    st.rerun()
+                else:
+                    st.error("❌ Failed to fetch costs")
+            except Exception as e:
+                st.error(f"❌ Error: {str(e)[:100]}")
+    
+    if st.session_state.get("cost_data"):
+        data = st.session_state.cost_data
+        summary = data.get("summary", {})
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Cost", f"${summary.get('total_cost', 0):.4f}")
+        with col2:
+            st.metric("Total Tests", summary.get("total_tests", 0))
+        with col3:
+            st.metric("Cost Per Test", f"${summary.get('cost_per_test', 0):.4f}")
+        with col4:
+            st.metric("Cost Per Pass", f"${summary.get('cost_per_pass', 0):.4f}")
+        
+        # Optimization Suggestions
+        suggestions = data.get("suggestions", [])
+        if suggestions:
+            st.subheader("💡 Optimization Suggestions")
+            for s in suggestions:
+                st.info(s)
