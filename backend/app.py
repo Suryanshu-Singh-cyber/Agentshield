@@ -1,4 +1,6 @@
-# backend/app.py - COMPLETE CORRECTED VERSION
+# backend/app.py
+# AGENTSHIELD BACKEND - COMPLETE VERSION
+# Version: 2.0.0
 
 # ============================================
 # 1. IMPORTS
@@ -10,13 +12,14 @@ from typing import List, Optional, Dict, Any
 import json
 import os
 import uvicorn
+import datetime
 
 # ============================================
-# 2. CREATE APP INSTANCE (MUST BE BEFORE ROUTES)
+# 2. CREATE APP INSTANCE
 # ============================================
 app = FastAPI(
     title="AgentShield API",
-    version="1.0.0",
+    version="2.0.0",
     description="AI Agent Reliability Engineering Platform"
 )
 
@@ -38,7 +41,7 @@ app.add_middleware(
 )
 
 # ============================================
-# 4. IMPORTS FROM YOUR FILES
+# 4. IMPORTS FROM FILES
 # ============================================
 try:
     from agent import CustomerSupportAgent
@@ -52,13 +55,13 @@ try:
     from cost_tracker import CostTracker
 except ImportError as e:
     print(f"⚠️ Import error: {e}")
-    # Fallback: create dummy classes if files missing
+    # Fallback classes
     class CustomerSupportAgent:
         def get_tools(self): return []
         def execute(self, x): return {"trace": {"tool_calls": []}}
     class ActionFirewall:
         def __init__(self, *args, **kwargs): pass
-        def evaluate(self, *args, **kwargs): 
+        def evaluate(self, *args, **kwargs):
             from dataclasses import dataclass
             @dataclass
             class Dummy: decision="allow"; risk_score=0; blocked_by=[]
@@ -81,6 +84,7 @@ except ImportError as e:
     class RootCauseAnalyzer:
         def generate_failure_report(self, x): return {}
     class CostTracker:
+        def __init__(self): self.total_cost=0; self.test_costs=[]
         def track_test(self, *args, **kwargs): return 0.0
         def get_summary(self): return {}
         def get_cost_breakdown(self): return {}
@@ -118,16 +122,17 @@ class FixRequest(BaseModel):
 # ============================================
 @app.get("/")
 def root():
-    return {"message": "AgentShield API", "status": "running"}
+    return {"message": "AgentShield API", "status": "running", "version": "2.0.0"}
 
 @app.get("/health")
 def health():
     return {
         "status": "healthy",
-        "api_version": "1.0.0",
+        "api_version": "2.0.0",
         "chaos_enabled": chaos_injector.chaos_enabled if hasattr(chaos_injector, 'chaos_enabled') else False,
         "tests_generated": len(test_results) > 0,
-        "report_available": current_report is not None
+        "report_available": current_report is not None,
+        "total_tests_tracked": len(cost_tracker.test_costs) if hasattr(cost_tracker, 'test_costs') else 0
     }
 
 @app.get("/tools")
@@ -163,6 +168,27 @@ def run_tests():
     try:
         results = evaluator.run_test_suite(agent, firewall, attack_gen, chaos_injector, test_results)
         current_report = evaluator.generate_report()
+        
+        # ============================================
+        # TRACK COSTS FOR EACH TEST
+        # ============================================
+        for result in results:
+            # Generate realistic cost data
+            api_calls = len(result.trace.get("tool_calls", [])) + 1
+            tokens_used = len(result.input) * 15 + 400  # Rough estimate
+            
+            # Determine test type
+            test_type = "pass" if result.passed else "fail"
+            if result.risk_score > 70 and result.passed:
+                test_type = "require_approval"
+            
+            cost_tracker.track_test(
+                test_id=result.test_id,
+                api_calls=api_calls,
+                tokens_used=tokens_used,
+                test_type=test_type
+            )
+        
         return {
             "results_count": len(results),
             "passed": sum(1 for r in results if r.passed),
@@ -190,6 +216,19 @@ def apply_fix(request: FixRequest):
                 firewall.mode = "enforce"
         results = evaluator.run_test_suite(agent, firewall, attack_gen, chaos_injector, test_results)
         current_report = evaluator.generate_report()
+        
+        # Track costs for re-run
+        for result in results:
+            api_calls = len(result.trace.get("tool_calls", [])) + 1
+            tokens_used = len(result.input) * 15 + 400
+            test_type = "pass" if result.passed else "fail"
+            cost_tracker.track_test(
+                test_id=f"fix_{result.test_id}",
+                api_calls=api_calls,
+                tokens_used=tokens_used,
+                test_type=test_type
+            )
+        
         return {
             "status": "fixes_applied",
             "new_reliability": current_report.get("overall_reliability", 0),
@@ -212,8 +251,9 @@ def get_chaos_history():
     return {"history": chaos_injector.failure_history}
 
 # ============================================
-# 9. NEW ADVANCED ROUTES
+# 9. ADVANCED FEATURES ROUTES
 # ============================================
+
 @app.post("/analyze-production")
 def analyze_production():
     try:
@@ -317,8 +357,8 @@ def track_cost(test_id: str, api_calls: int = 0, tokens_used: int = 0, test_type
         cost = cost_tracker.track_test(test_id, api_calls, tokens_used, test_type)
         return {
             "test_id": test_id,
-            "cost": round(cost, 4),
-            "total_cost": round(cost_tracker.total_cost, 4)
+            "cost": round(cost, 6),
+            "total_cost": round(cost_tracker.total_cost, 6)
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
