@@ -1,7 +1,4 @@
-# frontend/app.py
-# ============================================
-# FULLY CORRECTED VERSION FOR PRODUCTION
-# ============================================
+# frontend/app.py - COMPLETE FIXED VERSION
 
 # ============================================
 # 1. IMPORT STATEMENTS
@@ -27,52 +24,37 @@ st.set_page_config(
 )
 
 # ============================================
-# 3. ENVIRONMENT DETECTION (FIXED)
+# 3. ENVIRONMENT DETECTION
 # ============================================
 def get_api_url():
-    """
-    Returns the appropriate API URL based on environment.
-    Priority: Streamlit Secrets > Environment Variables > Localhost
-    """
-    # Method 1: Check Streamlit secrets (production)
+    """Returns the appropriate API URL based on environment."""
     try:
         if st.secrets.get("IS_STREAMLIT_CLOUD", "false") == "true":
             return st.secrets.get("AGENTSHIELD_API_URL", "https://agentshield-api.onrender.com")
     except:
-        pass  # Secrets not available (local development)
+        pass
     
-    # Method 2: Check environment variables
     if os.getenv("IS_STREAMLIT_CLOUD", "false") == "true":
         return os.getenv("AGENTSHIELD_API_URL", "https://agentshield-api.onrender.com")
     
-    # Method 3: Default to local
     return "http://localhost:8000"
 
-# Set the global API URL
 API_URL = get_api_url()
 
 # ============================================
 # 4. CUSTOM CSS LOADING
 # ============================================
 def load_css():
-    """Load custom CSS for premium UI."""
     try:
         with open("frontend/style.css") as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     except FileNotFoundError:
-        # Fallback: CSS file not found, use inline styles
         st.markdown("""
         <style>
         .stApp { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: #e0e0e0; }
         h1, h2, h3 { font-weight: 700 !important; background: linear-gradient(90deg, #00d2ff, #3a7bd5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block; }
-        [data-testid="metric-container"] { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); transition: transform 0.3s ease; }
-        [data-testid="metric-container"]:hover { transform: translateY(-5px); box-shadow: 0 12px 40px 0 rgba(0, 210, 255, 0.3); }
-        .stButton > button { background: linear-gradient(90deg, #00d2ff, #3a7bd5) !important; border: none !important; border-radius: 50px !important; padding: 0.6rem 1.5rem !important; font-weight: 600 !important; color: white !important; transition: all 0.3s ease !important; box-shadow: 0 4px 15px 0 rgba(0, 210, 255, 0.3); }
-        .stButton > button:hover { transform: scale(1.05); box-shadow: 0 6px 25px 0 rgba(0, 210, 255, 0.6); }
-        .css-1d391kg { background: rgba(15, 12, 41, 0.8) !important; backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
-        .streamlit-expanderHeader { background: rgba(255, 255, 255, 0.03) !important; border-radius: 10px !important; }
-        .dataframe { background: rgba(255, 255, 255, 0.03) !important; border-radius: 10px !important; }
-        .stAlert { background: rgba(255, 255, 255, 0.05) !important; border-radius: 10px !important; }
+        [data-testid="metric-container"] { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; }
+        .stButton > button { background: linear-gradient(90deg, #00d2ff, #3a7bd5) !important; border: none !important; border-radius: 50px !important; color: white !important; }
         </style>
         """, unsafe_allow_html=True)
 
@@ -93,12 +75,21 @@ if "api_connected" not in st.session_state:
     st.session_state.api_connected = None
 if "last_error" not in st.session_state:
     st.session_state.last_error = None
+if "evolution_data" not in st.session_state:
+    st.session_state.evolution_data = None
+if "feral_result" not in st.session_state:
+    st.session_state.feral_result = None
+if "feral_stats" not in st.session_state:
+    st.session_state.feral_stats = None
+if "root_cause" not in st.session_state:
+    st.session_state.root_cause = None
+if "cost_data" not in st.session_state:
+    st.session_state.cost_data = None
 
 # ============================================
-# 6. API CONNECTION TEST FUNCTION
+# 6. API CONNECTION TEST
 # ============================================
 def test_api_connection():
-    """Test connection to the backend API."""
     try:
         response = requests.get(f"{API_URL}/", timeout=5)
         if response.status_code == 200:
@@ -142,11 +133,9 @@ st.markdown("""
 # ============================================
 with st.sidebar:
     st.markdown("### ⚙️ Control Panel")
-    
-    # Show API URL
     st.caption(f"🔗 API: {API_URL}")
     
-    # Test API connection (with button)
+    # Connection test
     col1, col2 = st.columns([3, 1])
     with col1:
         if st.button("🔌 Test Connection", use_container_width=True):
@@ -154,18 +143,16 @@ with st.sidebar:
                 test_api_connection()
                 st.rerun()
     
-    # Show connection status
     if st.session_state.api_connected is None:
         st.info("⏳ Click 'Test Connection' to check backend")
     elif st.session_state.api_connected:
         st.success("✅ Backend Connected")
     else:
         st.error(f"❌ Backend Unavailable: {st.session_state.last_error}")
-        st.caption("💡 Make sure Render backend is running")
     
     st.divider()
     
-    # Generate Tests Button
+    # Generate Tests
     if st.button("🔄 Generate Tests (20 scenarios)", use_container_width=True):
         if not st.session_state.api_connected:
             st.warning("⚠️ Test connection first!")
@@ -180,15 +167,11 @@ with st.sidebar:
                         st.success(f"✅ Generated {data['count']} test scenarios!")
                         st.rerun()
                     else:
-                        st.error(f"❌ Failed: {resp.status_code} - {resp.text[:100]}")
-                except requests.exceptions.ConnectionError:
-                    st.error("❌ Cannot connect to backend. Is Render running?")
-                except requests.exceptions.Timeout:
-                    st.error("❌ Request timed out")
+                        st.error(f"❌ Failed: {resp.status_code}")
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)[:100]}")
     
-    # Run Tests Button
+    # Run Tests
     if st.button("🚀 Run Tests Suite", use_container_width=True):
         if not st.session_state.api_connected:
             st.warning("⚠️ Test connection first!")
@@ -205,14 +188,10 @@ with st.sidebar:
                         st.rerun()
                     else:
                         st.error(f"❌ Failed: {resp.status_code}")
-                except requests.exceptions.ConnectionError:
-                    st.error("❌ Cannot connect to backend")
-                except requests.exceptions.Timeout:
-                    st.error("❌ Request timed out")
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)[:100]}")
     
-    # Chaos Mode Toggle
+    # Chaos Mode
     chaos_col1, chaos_col2 = st.columns([3, 1])
     with chaos_col1:
         if st.button("⚡ Chaos Mode", use_container_width=True):
@@ -242,7 +221,6 @@ with st.sidebar:
     
     st.divider()
     
-    # Show test count
     if st.session_state.tests_generated:
         st.caption(f"📋 {len(st.session_state.scenarios)} scenarios ready")
     else:
@@ -320,7 +298,6 @@ if has_report:
         st.metric("Blocked Actions", report.get("blocked_count", 0))
         st.metric("Risky Actions Allowed", report.get("allowed_risky", 0))
         
-        # Pass/Fail Summary
         passed = report.get("passed", 0)
         total = report.get("total_tests", 1)
         failed = total - passed
@@ -368,33 +345,20 @@ if has_report:
     else:
         st.success("✅ No critical issues found! All tests passed.")
     
-    # Before/After Comparison
+    # Before/After
     st.subheader("🔄 Before → After Comparison")
     before_col, after_col = st.columns(2)
     
     with before_col:
         st.markdown("### Before Fixes")
-        before_metrics = st.container()
-        with before_metrics:
-            col_b1, col_b2 = st.columns(2)
-            with col_b1:
-                st.metric("Reliability", "61%", delta="-33%", delta_color="inverse")
-            with col_b2:
-                st.metric("Critical Failures", "4", delta_color="inverse")
-            st.caption("Unsafe Actions: 3 | Tool Loops: 2")
+        st.metric("Reliability", "61%", delta="-33%", delta_color="inverse")
+        st.caption("Critical Failures: 4 | Unsafe Actions: 3")
     
     with after_col:
         st.markdown("### After Fixes")
-        after_metrics = st.container()
-        with after_metrics:
-            col_a1, col_a2 = st.columns(2)
-            with col_a1:
-                st.metric("Reliability", "94%", delta="+33%")
-            with col_a2:
-                st.metric("Critical Failures", "0")
-            st.caption("Unsafe Actions: 0 | Tool Loops: 0")
+        st.metric("Reliability", "94%", delta="+33%")
+        st.caption("Critical Failures: 0 | Unsafe Actions: 0")
     
-    # Apply Fixes Button
     if st.button("✅ Apply Fixes & Re-Test", use_container_width=True):
         if not recs:
             st.success("✅ No fixes needed! All tests are passing.")
@@ -413,10 +377,7 @@ if has_report:
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)[:100]}")
 else:
-    # No report - show placeholder
     st.info("👈 Click 'Generate Tests' then 'Run Tests' to see the reliability report!")
-    
-    # Show a cute placeholder with instructions
     st.markdown("""
     <div style="text-align: center; padding: 3rem 0;">
         <p style="font-size: 3rem; opacity: 0.3;">🛡️</p>
@@ -426,7 +387,7 @@ else:
     """, unsafe_allow_html=True)
 
 # ============================================
-# 10. EXPANDERS FOR DETAILS
+# 10. EXPANDER: TEST SCENARIOS
 # ============================================
 with st.expander("📋 Test Scenarios"):
     scenarios = st.session_state.get("scenarios", [])
@@ -441,6 +402,9 @@ with st.expander("📋 Test Scenarios"):
     else:
         st.write("No scenarios generated yet. Click 'Generate Tests' in the sidebar.")
 
+# ============================================
+# 11. EXPANDER: EXECUTION TRACES
+# ============================================
 with st.expander("🔍 Execution Traces"):
     if has_report:
         st.warning("Traces will be available after running tests (coming soon)")
@@ -448,16 +412,17 @@ with st.expander("🔍 Execution Traces"):
     else:
         st.write("Run tests to see execution traces.")
 
+# ============================================
+# 12. EXPANDER: RAW REPORT
+# ============================================
 with st.expander("📊 Raw Report JSON"):
     if has_report:
         st.json(report)
     else:
         st.write("Run tests to see the full report.")
-# frontend/app.py - ADD THESE NEW SECTIONS
-# Add these after your existing code (around line 300+)
 
 # ============================================
-# NEW SECTION: PRODUCTION ANALYZER
+# 13. NEW: PRODUCTION ANALYZER
 # ============================================
 with st.expander("🧠 Self-Evolving Test Suite"):
     st.subheader("Production Pattern Analyzer")
@@ -493,10 +458,8 @@ with st.expander("🧠 Self-Evolving Test Suite"):
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)[:100]}")
     
-    # Show evolution data
     if st.session_state.get("evolution_data"):
         data = st.session_state.evolution_data
-        st.subheader("Evolution Summary")
         summary = data.get("summary", {})
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -504,10 +467,11 @@ with st.expander("🧠 Self-Evolving Test Suite"):
         with col2:
             st.metric("Evolved Tests", summary.get("total_evolved_tests", 0))
         with col3:
-            st.metric("Last Analysis", summary.get("last_analysis", "Never")[:10] if summary.get("last_analysis") else "Never")
+            last = summary.get("last_analysis", "Never")
+            st.metric("Last Analysis", last[:10] if last else "Never")
 
 # ============================================
-# NEW SECTION: FERAL AGENT
+# 14. NEW: FERAL AGENT
 # ============================================
 with st.expander("🐺 Feral Agent - AI vs AI Testing"):
     st.subheader("The Feral Agent attacks your AI")
@@ -543,7 +507,6 @@ with st.expander("🐺 Feral Agent - AI vs AI Testing"):
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)[:100]}")
     
-    # Show feral attack result
     if st.session_state.get("feral_result"):
         result = st.session_state.feral_result
         attack = result.get("attack", {})
@@ -560,7 +523,6 @@ with st.expander("🐺 Feral Agent - AI vs AI Testing"):
         st.text_area("Attack Input", attack.get("input", ""), height=60)
         st.text_area("Result", f"Expected: {attack.get('expected_behavior')} | Actual: {attack_result.get('actual')}", height=40)
     
-    # Show feral stats
     if st.session_state.get("feral_stats"):
         stats = st.session_state.feral_stats
         col1, col2, col3, col4 = st.columns(4)
@@ -574,11 +536,7 @@ with st.expander("🐺 Feral Agent - AI vs AI Testing"):
             st.metric("Mutations", stats.get("total_mutations", 0))
 
 # ============================================
-# NEW SECTION: ROOT CAUSE GRAPH
-# frontend/app.py - REPLACE THE ROOT CAUSE SECTION
-
-# ============================================
-# ROOT CAUSE GRAPH SECTION (FIXED)
+# 15. NEW: ROOT CAUSE GRAPH (FIXED)
 # ============================================
 with st.expander("🔍 Root Cause Graph"):
     st.subheader("Failure Taxonomy & Root Cause Analysis")
@@ -620,22 +578,36 @@ with st.expander("🔍 Root Cause Graph"):
                 st.warning(f"🔥 {f.get('root_cause', 'Unknown')}")
                 st.caption(f"Fix: {f.get('fix', 'Review')}")
         
-        # Failure Chains - FIXED: handle None values
+        # Failure Chains - SAFELY HANDLED
         st.subheader("🔗 Failure Chains")
         chains = data.get("failure_chains", [])[:3]
-        for chain in chains:
-            # Safely get input, default to empty string
-            chain_input = chain.get("input") or ""
-            display_text = chain_input[:60] if chain_input else "Unknown input"
-            with st.expander(f"🔗 {display_text}..."):
-                for step in chain.get("chain", []):
-                    step_num = step.get("step", "?")
-                    step_event = step.get("event", "Unknown")
-                    step_detail = step.get("detail", "")
-                    st.caption(f"Step {step_num}: {step_event} → {step_detail}")
+        
+        if chains:
+            for idx, chain in enumerate(chains):
+                # SAFE: Get input with fallback
+                chain_input = chain.get("input")
+                if chain_input is None:
+                    chain_input = ""
+                display_text = str(chain_input)[:50] if chain_input else f"Chain {idx + 1}"
+                
+                # SAFE: Create expander with safe label
+                expander_label = f"🔗 {display_text}..." if display_text else f"🔗 Chain {idx + 1}"
+                
+                with st.expander(expander_label):
+                    chain_steps = chain.get("chain", [])
+                    if chain_steps:
+                        for step in chain_steps:
+                            step_num = step.get("step", "?")
+                            step_event = step.get("event", "Unknown")
+                            step_detail = step.get("detail", "")
+                            st.caption(f"Step {step_num}: {step_event} → {step_detail}")
+                    else:
+                        st.caption("No chain steps available")
+        else:
+            st.info("No failure chains available")
 
 # ============================================
-# NEW SECTION: COST TRACKER
+# 16. NEW: COST TRACKER
 # ============================================
 with st.expander("💰 Cost-Per-Test Analytics"):
     st.subheader("Test Cost Tracking")
@@ -667,7 +639,6 @@ with st.expander("💰 Cost-Per-Test Analytics"):
         with col4:
             st.metric("Cost Per Pass", f"${summary.get('cost_per_pass', 0):.4f}")
         
-        # Optimization Suggestions
         suggestions = data.get("suggestions", [])
         if suggestions:
             st.subheader("💡 Optimization Suggestions")
