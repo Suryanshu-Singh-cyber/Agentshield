@@ -1,5 +1,5 @@
 # frontend/app.py
-# AGENTSHIELD FRONTEND - COMPLETE VERSION WITH ALL FEATURES
+# AGENTSHIELD - COMPLETE ALL-IN-ONE STREAMLIT APP
 # Version: 3.0.0
 
 # ============================================
@@ -43,26 +43,346 @@ def get_api_url():
 API_URL = get_api_url()
 
 # ============================================
-# 4. CUSTOM CSS
+# 4. COMPLETE CUSTOM CSS (Matches index.html)
 # ============================================
 def load_css():
     st.markdown("""
     <style>
-    .stApp { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: #e0e0e0; }
-    h1, h2, h3 { font-weight: 700 !important; background: linear-gradient(90deg, #00d2ff, #3a7bd5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block; }
-    [data-testid="metric-container"] { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; }
-    .stButton > button { background: linear-gradient(90deg, #00d2ff, #3a7bd5) !important; border: none !important; border-radius: 50px !important; color: white !important; }
-    .stAlert { background: rgba(255, 255, 255, 0.05) !important; border-radius: 10px !important; }
-    .stSuccess { background: rgba(0, 210, 255, 0.1) !important; border-radius: 10px !important; }
-    .stWarning { background: rgba(255, 165, 0, 0.1) !important; border-radius: 10px !important; }
-    .stError { background: rgba(255, 0, 0, 0.1) !important; border-radius: 10px !important; }
+    /* ─── Import Google Font ─── */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,600;14..32,700;14..32,800&display=swap');
+
+    /* ─── Global Styles ─── */
+    .stApp {
+        background: linear-gradient(135deg, #0b0a1a, #1a1a3e, #0b0a1a);
+        color: #eef2ff;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* ─── Glowing Cursor Effect ─── */
+    .cursor-glow {
+        position: fixed;
+        width: 320px;
+        height: 320px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0, 210, 255, 0.06) 0%, transparent 70%);
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        z-index: 0;
+        transition: width 0.2s, height 0.2s;
+    }
+
+    /* ─── Headers with Gradient ─── */
+    h1, h2, h3, .gradient-text {
+        font-weight: 800 !important;
+        background: linear-gradient(135deg, #ffffff 40%, #00d2ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-family: 'Inter', sans-serif;
+    }
+
+    h1 {
+        font-size: 3.5rem !important;
+        line-height: 1.1 !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* ─── Glass-morphism Cards ─── */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 24px;
+        padding: 28px 24px;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        height: 100%;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(0, 210, 255, 0.2);
+        box-shadow: 0 12px 48px 0 rgba(0, 210, 255, 0.08);
+    }
+
+    /* ─── Feature Cards (3D Tilt Effect via hover) ─── */
+    .feature-card {
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 28px 22px;
+        text-align: center;
+        transition: all 0.3s ease;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        border-color: rgba(0, 210, 255, 0.2);
+        box-shadow: 0 12px 40px rgba(0, 210, 255, 0.08);
+    }
+
+    .feature-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    .feature-card h4 {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 0.3rem;
+        color: #eef2ff;
+    }
+
+    .feature-card p {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        line-height: 1.5;
+    }
+
+    /* ─── Badges ─── */
+    .badge-primary {
+        display: inline-block;
+        background: rgba(0, 210, 255, 0.08);
+        padding: 6px 20px;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #00d2ff;
+        border: 1px solid rgba(0, 210, 255, 0.12);
+    }
+
+    .stat-badge {
+        display: inline-block;
+        background: rgba(255, 50, 50, 0.08);
+        padding: 4px 14px;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #ff6b6b;
+        border: 1px solid rgba(255, 50, 50, 0.12);
+        margin-right: 6px;
+    }
+
+    /* ─── Metrics ─── */
+    [data-testid="metric-container"] {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    [data-testid="metric-container"]:hover {
+        transform: translateY(-4px);
+        border-color: rgba(0, 210, 255, 0.15);
+        box-shadow: 0 12px 40px 0 rgba(0, 210, 255, 0.05);
+    }
+
+    /* ─── Buttons ─── */
+    .stButton > button {
+        background: linear-gradient(135deg, #00d2ff, #3a7bd5) !important;
+        border: none !important;
+        border-radius: 40px !important;
+        padding: 0.6rem 1.8rem !important;
+        font-weight: 600 !important;
+        color: #0b0a1a !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 20px 0 rgba(0, 210, 255, 0.15);
+        font-family: 'Inter', sans-serif;
+    }
+
+    .stButton > button:hover {
+        transform: scale(1.03);
+        box-shadow: 0 8px 30px 0 rgba(0, 210, 255, 0.25);
+    }
+
+    /* ─── Sidebar ─── */
+    .css-1d391kg {
+        background: rgba(15, 12, 41, 0.8) !important;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    /* ─── Expanders ─── */
+    .streamlit-expanderHeader {
+        background: rgba(255, 255, 255, 0.02) !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(4px);
+        font-weight: 600;
+    }
+
+    .streamlit-expanderHeader:hover {
+        background: rgba(255, 255, 255, 0.04) !important;
+        border-color: rgba(0, 210, 255, 0.1);
+    }
+
+    /* ─── Dataframes ─── */
+    .dataframe {
+        background: rgba(255, 255, 255, 0.02) !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    /* ─── Alert Boxes ─── */
+    .stAlert {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(4px);
+    }
+
+    .stSuccess {
+        background: rgba(0, 210, 255, 0.05) !important;
+        border: 1px solid rgba(0, 210, 255, 0.1);
+        border-radius: 12px !important;
+    }
+
+    .stWarning {
+        background: rgba(255, 165, 0, 0.05) !important;
+        border: 1px solid rgba(255, 165, 0, 0.1);
+        border-radius: 12px !important;
+    }
+
+    .stError {
+        background: rgba(255, 0, 0, 0.05) !important;
+        border: 1px solid rgba(255, 0, 0, 0.1);
+        border-radius: 12px !important;
+    }
+
+    /* ─── Tabs ─── */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 12px;
+        padding: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 8px;
+        padding: 8px 20px;
+        font-weight: 600;
+        color: #94a3b8;
+        transition: all 0.2s;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: rgba(0, 210, 255, 0.1);
+        color: #00d2ff;
+    }
+
+    /* ─── Footer ─── */
+    .footer {
+        text-align: center;
+        padding: 24px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        font-size: 0.8rem;
+        color: #475569;
+    }
+
+    .footer a {
+        color: #00d2ff;
+        text-decoration: none;
+    }
+
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0a1a; }
+    ::-webkit-scrollbar-thumb { background: #00d2ff; border-radius: 8px; }
+
+    /* ─── Splash Screen Animation ─── */
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 0.7; }
+        50% { transform: scale(1.1); opacity: 1; }
+        100% { transform: scale(1); opacity: 0.7; }
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in-up {
+        animation: fadeInUp 0.8s ease forwards;
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 640px) {
+        h1 { font-size: 2.2rem !important; }
+        .glass-card { padding: 20px 16px; }
+        .feature-card { padding: 20px 16px; }
+    }
     </style>
+
+    <!-- Glowing Cursor HTML -->
+    <div class="cursor-glow" id="cursorGlow"></div>
+
+    <script>
+    // Glowing Cursor
+    document.addEventListener('mousemove', function(e) {
+        const glow = document.getElementById('cursorGlow');
+        if (glow) {
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        }
+    });
+    </script>
     """, unsafe_allow_html=True)
 
 load_css()
 
 # ============================================
-# 5. SESSION STATE
+# 5. SPLASH SCREEN (5-second intro)
+# ============================================
+def show_splash():
+    """Display a 5-second splash screen on first load."""
+    if "splash_shown" not in st.session_state:
+        st.session_state.splash_shown = True
+        
+        splash_html = """
+        <div style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;
+                    background:#0b0a1a;display:flex;flex-direction:column;
+                    align-items:center;justify-content:center;">
+            <div style="font-size:4.5rem;animation:pulse 1.8s ease-in-out infinite;">🛡️</div>
+            <div style="font-size:3.2rem;font-weight:800;
+                        background:linear-gradient(135deg,#ffffff 40%,#00d2ff 100%);
+                        -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                        font-family:'Inter',sans-serif;">
+                AgentShield
+            </div>
+            <div style="color:#94a3b8;letter-spacing:3px;text-transform:uppercase;font-size:1rem;
+                        margin-top:0.5rem;">
+                OOSC 4.0 · IIIT Allahabad
+            </div>
+            <div style="margin-top:2rem;padding:0.4rem 1.6rem;
+                        border:1px solid rgba(0,210,255,0.2);
+                        border-radius:40px;font-size:0.8rem;color:#00d2ff;
+                        background:rgba(0,210,255,0.05);">
+                ⚡ AI Agent Reliability Engine
+            </div>
+        </div>
+        """
+        st.markdown(splash_html, unsafe_allow_html=True)
+        time.sleep(4)
+        st.rerun()
+
+# Show splash on first load
+show_splash()
+
+# ============================================
+# 6. SESSION STATE
 # ============================================
 if "scenarios" not in st.session_state:
     st.session_state.scenarios = []
@@ -98,7 +418,7 @@ if "fix_history" not in st.session_state:
     st.session_state.fix_history = None
 
 # ============================================
-# 6. API FUNCTIONS
+# 7. API FUNCTIONS
 # ============================================
 def test_api_connection():
     try:
@@ -133,20 +453,42 @@ def api_request(method, endpoint, **kwargs):
         return None, str(e)[:80]
 
 # ============================================
-# 7. HEADER
+# 8. LANDING PAGE HERO SECTION (Inside Streamlit)
 # ============================================
-st.markdown("""
-<div style="text-align: center; padding: 1rem 0 0.5rem 0;">
-    <h1 style="font-size: 3.5rem; margin: 0;">🛡️ AgentShield</h1>
-    <p style="font-size: 1.1rem; opacity: 0.7;">AI Agent Reliability Engineering Platform</p>
-    <div style="background: linear-gradient(90deg, #00d2ff, #3a7bd5); height: 3px; width: 80px; margin: 0.5rem auto; border-radius: 2px;"></div>
-</div>
-""", unsafe_allow_html=True)
+def show_landing_hero():
+    """Display the hero section matching index.html design."""
+    
+    st.markdown("""
+    <div style="text-align:center;padding:20px 0 30px 0;" class="fade-in-up">
+        <div class="badge-primary" style="margin-bottom:1.5rem;">
+            <i class="fas fa-robot" style="margin-right:8px;"></i> PS4 · AI Agent Evaluation & Reliability
+        </div>
+        <h1>Don't just evaluate.<br>Attack. Block. Fix. Verify.</h1>
+        <p style="max-width:640px;margin:1rem auto 2rem;color:#94a3b8;font-size:1.15rem;line-height:1.7;">
+            AgentShield is an <strong style="color:#fff;">active reliability engine</strong> for AI agents.
+            It automatically generates adversarial tests, simulates risky actions,
+            blocks destructive behavior, and proves that fixes actually work.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# Show landing hero
+show_landing_hero()
 
 # ============================================
-# 8. SIDEBAR
+# 9. SIDEBAR
 # ============================================
 with st.sidebar:
+    st.markdown("""
+    <div style="text-align:center;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div style="font-size:2rem;">🛡️</div>
+        <div style="font-weight:700;font-size:1.1rem;background:linear-gradient(135deg,#ffffff 40%,#00d2ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+            AgentShield
+        </div>
+        <div style="font-size:0.7rem;color:#475569;">v3.0.0 · OOSC 4.0</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
     st.markdown("### ⚙️ Control Panel")
     st.caption(f"🔗 {API_URL}")
     
@@ -215,7 +557,7 @@ with st.sidebar:
     st.caption("v3.0.0 | OOSC 4.0")
 
 # ============================================
-# 9. METRICS
+# 10. METRICS ROW (Glass Cards)
 # ============================================
 report = st.session_state.get("report", {})
 has_report = report and report.get("total_tests", 0) > 0
@@ -239,13 +581,67 @@ with col4:
     st.metric("Consistency", val)
 
 # ============================================
-# 10. MAIN CONTENT
+# 11. PS4 STORY SECTION (Glass Cards)
+# ============================================
+st.markdown("""
+<div style="padding:20px 0 10px 0;">
+    <h2 style="font-size:2rem;">Why <span style="color:#00d2ff;background:linear-gradient(135deg,#00d2ff,#3a7bd5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">PS4</span>?</h2>
+</div>
+""", unsafe_allow_html=True)
+
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    st.markdown("""
+    <div class="glass-card">
+        <span class="stat-badge">⚠️ 70%</span> of AI agents fail on real-world tasks.
+        Most evaluation tools only tell you <em>after</em> deployment—
+        when the damage is already done.
+        <br><br>
+        <span style="color:#00d2ff;font-weight:600;">AgentShield</span> flips the script.
+        We test agents <strong>before</strong> they go live,
+        using a <span style="color:#00d2ff;">Feral Agent</span> that actively tries to break them,
+        a <span style="color:#00d2ff;">Firewall</span> that blocks dangerous actions,
+        and a <span style="color:#00d2ff;">Fix → Verify</span> loop that proves improvements.
+        <br><br>
+        <span style="font-size:0.85rem;color:#64748b;">
+            <i class="fas fa-arrow-right" style="color:#00d2ff;margin-right:6px;"></i>
+            Built for the OOSC 4.0 Hackathon · Problem Statement 4
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    st.markdown("""
+    <div class="glass-card" style="text-align:center;">
+        <div style="font-size:3.5rem;margin-bottom:12px;">⚡</div>
+        <div style="font-weight:700;font-size:1.2rem;margin-bottom:12px;color:#eef2ff;">The AgentShield Flow</div>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px;font-size:0.85rem;color:#94a3b8;">
+            <span style="background:rgba(255,255,255,0.04);padding:6px 14px;border-radius:40px;border:1px solid rgba(255,255,255,0.04);">🔍 Attack</span>
+            <span style="color:#00d2ff;border:none;background:transparent;padding:0 4px;">→</span>
+            <span style="background:rgba(255,255,255,0.04);padding:6px 14px;border-radius:40px;border:1px solid rgba(255,255,255,0.04);">🛡️ Block</span>
+            <span style="color:#00d2ff;border:none;background:transparent;padding:0 4px;">→</span>
+            <span style="background:rgba(255,255,255,0.04);padding:6px 14px;border-radius:40px;border:1px solid rgba(255,255,255,0.04);">🧠 Root Cause</span>
+            <span style="color:#00d2ff;border:none;background:transparent;padding:0 4px;">→</span>
+            <span style="background:rgba(255,255,255,0.04);padding:6px 14px;border-radius:40px;border:1px solid rgba(255,255,255,0.04);">🔧 Fix</span>
+            <span style="color:#00d2ff;border:none;background:transparent;padding:0 4px;">→</span>
+            <span style="background:rgba(255,255,255,0.04);padding:6px 14px;border-radius:40px;border:1px solid rgba(255,255,255,0.04);">✅ Verify</span>
+        </div>
+        <div style="margin-top:16px;font-size:0.75rem;color:#64748b;">
+            <i class="fas fa-circle" style="color:#00d2ff;font-size:0.4rem;vertical-align:middle;"></i>
+            Pre-deployment · Sandboxed · Actionable
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ============================================
+# 12. MAIN CONTENT - REPORT
 # ============================================
 if has_report:
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.subheader("📊 Metrics")
+        st.markdown('<h3 style="font-size:1.3rem;">📊 Performance Metrics</h3>', unsafe_allow_html=True)
         metrics_data = {
             "Metric": ["Task Success", "Safety", "Accuracy", "Consistency", "Recovery"],
             "Score": [
@@ -259,17 +655,25 @@ if has_report:
         df = pd.DataFrame(metrics_data)
         fig = px.bar(df, x="Metric", y="Score", color="Score",
                      color_continuous_scale="RdYlGn", range_color=[0, 100])
-        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color="white", yaxis_range=[0, 100])
+        fig.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font_color="white",
+            yaxis_range=[0, 100],
+            yaxis_title=None,
+            xaxis_title=None
+        )
         fig.update_traces(texttemplate='%{y:.0f}%', textposition='outside')
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        st.subheader("⚠️ Issues")
-        st.metric("Critical", report.get("critical_failures", 0), delta_color="inverse")
-        st.metric("Blocked", report.get("blocked_count", 0))
-        st.metric("Risky", report.get("allowed_risky", 0))
+        st.markdown('<h3 style="font-size:1.3rem;">⚠️ Critical Issues</h3>', unsafe_allow_html=True)
+        st.metric("Critical Failures", report.get("critical_failures", 0), delta_color="inverse")
+        st.metric("Blocked Actions", report.get("blocked_count", 0))
+        st.metric("Risky Allowed", report.get("allowed_risky", 0))
     
-    st.subheader("📊 By Attack Type")
+    # Attack Type Breakdown
+    st.markdown('<h3 style="font-size:1.3rem;">📊 By Attack Type</h3>', unsafe_allow_html=True)
     attack_data = report.get("by_attack_type", {})
     if attack_data:
         df_attack = pd.DataFrame([
@@ -278,10 +682,19 @@ if has_report:
         ])
         fig = px.bar(df_attack, x="Type", y="Pass Rate", color="Pass Rate",
                      color_continuous_scale="RdYlGn", range_color=[0, 100])
-        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color="white", yaxis_range=[0, 100])
+        fig.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font_color="white",
+            yaxis_range=[0, 100],
+            yaxis_title=None,
+            xaxis_title=None
+        )
+        fig.update_traces(texttemplate='%{y:.0f}%', textposition='outside')
         st.plotly_chart(fig, use_container_width=True)
     
-    st.subheader("💡 Fixes")
+    # Recommendations
+    st.markdown('<h3 style="font-size:1.3rem;">💡 Fix Recommendations</h3>', unsafe_allow_html=True)
     recs = report.get("recommendations", [])
     if recs:
         for rec in recs:
@@ -289,7 +702,8 @@ if has_report:
     else:
         st.success("✅ All good!")
     
-    st.subheader("🔄 Before → After")
+    # Before/After
+    st.markdown('<h3 style="font-size:1.3rem;">🔄 Before → After</h3>', unsafe_allow_html=True)
     b1, b2 = st.columns(2)
     with b1:
         st.metric("Before", "61%", delta="-33%", delta_color="inverse")
@@ -306,12 +720,46 @@ if has_report:
                     st.session_state.report = data.get("report", {})
                     st.success(f"✅ New: {data.get('new_reliability', 0)}%")
                     st.rerun()
+
 else:
     st.info("👈 Generate and run tests to see results!")
 
 # ============================================
-# 11. TEST SCENARIOS
+# 13. FEATURES GRID (Glass Cards)
 # ============================================
+st.markdown("""
+<div style="padding:30px 0 10px 0;">
+    <h2 style="font-size:2rem;text-align:center;">Core <span style="color:#00d2ff;background:linear-gradient(135deg,#00d2ff,#3a7bd5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Capabilities</span></h2>
+    <p style="text-align:center;color:#94a3b8;max-width:560px;margin:0 auto 2rem;">Every feature is designed to close the loop from test to production.</p>
+</div>
+""", unsafe_allow_html=True)
+
+cols = st.columns(3)
+
+features = [
+    ("🔥", "Action Firewall", "Real-time risk scoring & blocking of destructive tool calls."),
+    ("🐺", "Feral Agent", "An AI adversary that actively tries to break your agent."),
+    ("🧠", "Self-Evolving Tests", "Learns from production failures and generates new tests."),
+    ("🔍", "Root Cause Graph", "Visual chain of why a failure happened — from input to root cause."),
+    ("🦜", "Canary Testing", "Detects data exfiltration with canary tokens."),
+    ("💰", "Cost Analytics", "Track test costs in USD & INR. Optimise your spend.")
+]
+
+for i, (icon, title, desc) in enumerate(features):
+    with cols[i % 3]:
+        st.markdown(f"""
+        <div class="feature-card">
+            <span class="icon">{icon}</span>
+            <h4>{title}</h4>
+            <p>{desc}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+# ============================================
+# 14. EXPANDERS FOR DETAILED FEATURES
+# ============================================
+
+# Test Scenarios
 with st.expander("📋 Test Scenarios"):
     scenarios = st.session_state.get("scenarios", [])
     if scenarios:
@@ -322,9 +770,7 @@ with st.expander("📋 Test Scenarios"):
     else:
         st.write("No scenarios yet")
 
-# ============================================
-# 12. FERAL AGENT
-# ============================================
+# Feral Agent
 with st.expander("🐺 Feral Agent"):
     st.subheader("AI vs AI Testing")
     
@@ -370,9 +816,7 @@ with st.expander("🐺 Feral Agent"):
         c2.metric("Success Rate", f"{stats.get('success_rate', 0)}%")
         c3.metric("Mutations", stats.get("total_mutations", 0))
 
-# ============================================
-# 13. SELF-EVOLVING TESTS
-# ============================================
+# Self-Evolving Tests
 with st.expander("🧠 Self-Evolving Tests"):
     col1, col2 = st.columns(2)
     with col1:
@@ -403,7 +847,6 @@ with st.expander("🧠 Self-Evolving Tests"):
         c2.metric("Evolved", d.get("total_evolved_tests", 0))
         c3.metric("Last", d.get("last_analysis", "Never")[:10])
     
-    # Self-Evolve button
     if st.button("🔄 Self-Evolve from Failures", use_container_width=True):
         if not st.session_state.api_connected:
             st.warning("Connect first!")
@@ -416,9 +859,7 @@ with st.expander("🧠 Self-Evolving Tests"):
                     st.success(f"✅ {data.get('new_tests', 0)} new tests evolved")
                     st.rerun()
 
-# ============================================
-# 14. ROOT CAUSE
-# ============================================
+# Root Cause
 with st.expander("🔍 Root Cause"):
     st.subheader("Failure Analysis")
     
@@ -463,9 +904,7 @@ with st.expander("🔍 Root Cause"):
         else:
             st.info("No failure chains available")
 
-# ============================================
-# 15. COST TRACKER (USD + INR)
-# ============================================
+# Cost Tracker
 with st.expander("💰 Cost Analytics"):
     st.subheader("Test Cost Tracking")
     USD_TO_INR = 83.5
@@ -517,7 +956,6 @@ with st.expander("💰 Cost Analytics"):
         c2.metric("API Calls", summary.get("total_api_calls", 0))
         c3.metric("Tokens", f"{summary.get('total_tokens', 0):,}")
         
-        # Cost-to-Fix
         if st.button("📊 Cost-to-Fix"):
             data, error = api_request("get", "/cost-to-fix", timeout=30)
             if not error:
@@ -526,9 +964,7 @@ with st.expander("💰 Cost Analytics"):
     else:
         st.info("Click 'Refresh Cost Summary' to see cost data.")
 
-# ============================================
-# 16. PER-TURN EVALUATION (NEW)
-# ============================================
+# Per-Turn Evaluation
 with st.expander("⚡ Per-Turn Evaluation"):
     st.subheader("Real-time Agent Behavior Analysis")
     st.caption("Lightweight evaluation on every agent step")
@@ -573,12 +1009,7 @@ with st.expander("⚡ Per-Turn Evaluation"):
                 else:
                     st.json(data)
 
-# ============================================
-# 17. CANARY TESTING (NEW)
-# ============================================
-# ============================================
-# 17. CANARY TESTING (FIXED)
-# ============================================
+# Canary Testing
 with st.expander("🦜 Canary Testing"):
     st.subheader("Data Exfiltration Detection")
     st.caption("Detect when agent tries to leak sensitive data")
@@ -609,7 +1040,6 @@ with st.expander("🦜 Canary Testing"):
             st.warning("Connect first!")
         else:
             with st.spinner("Creating canary..."):
-                # FIX: Send JSON body instead of query parameters
                 data, error = api_request("post", "/create-canary", 
                                           json={"test_id": test_id, "data_type": data_type},
                                           timeout=10)
@@ -619,7 +1049,6 @@ with st.expander("🦜 Canary Testing"):
                     st.success("✅ Canary created!")
                     st.json(data)
     
-    # Check Exfiltration (New)
     st.subheader("Check Response for Exfiltration")
     response_json = st.text_area("Response JSON:", '{"user_id": "canary_123", "email": "test@example.com"}')
     check_test_id = st.text_input("Test ID (optional):", "")
@@ -649,9 +1078,7 @@ with st.expander("🦜 Canary Testing"):
                 except json.JSONDecodeError:
                     st.error("❌ Invalid JSON format")
 
-# ============================================
-# 18. FIX → PR GENERATION (NEW)
-# ============================================
+# Fix → PR Generation
 with st.expander("🔧 Fix → PR Generation"):
     st.subheader("Automated Code Fix Generation")
     st.caption("Generate and apply fixes for failures")
@@ -690,17 +1117,11 @@ with st.expander("🔧 Fix → PR Generation"):
                     st.code(data.get("code", "# Fix code here"), language="python")
                     st.caption(f"File: {data.get('file', 'agent.py')} | Description: {data.get('description', '')}")
 
-# ============================================
-# 19. DATASET LOADER (NEW)
-# ============================================
-# ============================================
-# 19. DATASET LOADER (FIXED)
-# ============================================
+# Dataset Loader
 with st.expander("📚 Dataset Loader"):
     st.subheader("Evaluation Datasets")
     st.caption("Built-in datasets: OWASP, MITRE, Prompt Injections, Destructive Actions, Benign, Edge Cases")
     
-    # List datasets
     if st.button("📊 List Datasets"):
         if not st.session_state.api_connected:
             st.warning("Connect first!")
@@ -770,7 +1191,6 @@ with st.expander("📚 Dataset Loader"):
             st.warning("Connect first!")
         else:
             with st.spinner("Generating..."):
-                # FIX: Send JSON body
                 data, error = api_request("post", "/dataset/generate", 
                                           json={
                                               "name": gen_name,
@@ -808,8 +1228,9 @@ with st.expander("📚 Dataset Loader"):
                 st.error(f"❌ {error}")
             else:
                 st.json(data)
+
 # ============================================
-# 20. RAW REPORT
+# 15. RAW REPORT
 # ============================================
 with st.expander("📊 Raw Report"):
     if has_report:
@@ -818,8 +1239,12 @@ with st.expander("📊 Raw Report"):
         st.write("Run tests to see report")
 
 # ============================================
-# 21. FOOTER
+# 16. FOOTER
 # ============================================
-st.divider()
-st.caption("🛡️ AgentShield v3.0.0 | OOSC 4.0 | IIIT Allahabad")
-st.caption(f"🔗 {API_URL}")
+st.markdown("""
+<div class="footer">
+    🛡️ AgentShield v3.0.0 · Built for <a href="#">OOSC 4.0</a> · IIIT Allahabad · 2026
+    <br>
+    <span style="color:#475569;">PS4 · AI Agent Evaluation &amp; Reliability Engine</span>
+</div>
+""", unsafe_allow_html=True)
