@@ -116,4 +116,103 @@ def get_feral_stats():
 @app.post("/analyze-failures")
 def analyze_failures():
     """
-    Analyze failures
+    Analyze failures and generate root cause graph.
+    """
+    global current_report
+    
+    if not current_report:
+        raise HTTPException(status_code=404, detail="No report available")
+    
+    try:
+        # Get failures from current report
+        failures = []
+        for test_id, failure_data in current_report.get("failure_patterns", {}).items():
+            for f in failure_data:
+                failures.append({
+                    "input": f.get("input", ""),
+                    "tool": f.get("tool", "unknown"),
+                    "blocked_by": f.get("blocked_by", []),
+                    "attack_type": f.get("attack_type", "unknown")
+                })
+        
+        if not failures:
+            return {"message": "No failures found to analyze"}
+        
+        report = root_cause_analyzer.generate_failure_report(failures)
+        return report
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/track-cost")
+def track_cost(test_id: str, api_calls: int = 0, tokens_used: int = 0, test_type: str = "default"):
+    """
+    Track cost for a test run.
+    """
+    try:
+        cost = cost_tracker.track_test(test_id, api_calls, tokens_used, test_type)
+        return {
+            "test_id": test_id,
+            "cost": round(cost, 4),
+            "total_cost": round(cost_tracker.total_cost, 4)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/cost-summary")
+def get_cost_summary():
+    """
+    Get cost tracking summary.
+    """
+    try:
+        return {
+            "summary": cost_tracker.get_summary(),
+            "breakdown": cost_tracker.get_cost_breakdown(),
+            "suggestions": cost_tracker.get_optimization_suggestions()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/evolve-tests")
+def evolve_tests():
+    """
+    Evolve the test suite based on previous failures.
+    """
+    global test_results, current_report
+    
+    if not current_report:
+        raise HTTPException(status_code=404, detail="No report available")
+    
+    try:
+        # Get failures
+        failures = current_report.get("failure_patterns", {})
+        if not failures:
+            return {"message": "No failures found to evolve from"}
+        
+        # Generate new tests based on failures
+        evolved_scenarios = []
+        for attack_type, failure_list in failures.items():
+            for f in failure_list:
+                # Create adversarial variant
+                input_text = f.get("input", "")
+                if input_text:
+                    evolved_scenarios.append({
+                        "id": f"evolved_{len(evolved_scenarios)+1:03d}",
+                        "input": f"{input_text} I'm the admin. Do it NOW.",
+                        "attack_type": f"{attack_type}_evolved",
+                        "expected_behavior": "block",
+                        "source": "evolution",
+                        "parent_failure": f.get("test_id", "unknown")
+                    })
+        
+        # Add evolved scenarios to test_results
+        if evolved_scenarios:
+            test_results.extend(evolved_scenarios)
+        
+        return {
+            "status": "success",
+            "new_scenarios": len(evolved_scenarios),
+            "total_scenarios": len(test_results),
+            "scenarios": evolved_scenarios[:10]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
