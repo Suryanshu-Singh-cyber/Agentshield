@@ -1,5 +1,5 @@
 # frontend/app.py
-# AGENTSHIELD - COMPLETE FRONTEND (FULLY FIXED)
+# AGENTSHIELD FRONTEND - COMPLETE VERSION
 # Version: 2.0.1
 
 # ============================================
@@ -414,7 +414,6 @@ with st.expander("🔍 Root Cause"):
     if st.session_state.get("root_cause_data"):
         data = st.session_state.root_cause_data
         
-        # Taxonomy
         taxonomy = data.get("taxonomy_breakdown", {})
         if taxonomy:
             st.subheader("Taxonomy")
@@ -423,27 +422,21 @@ with st.expander("🔍 Root Cause"):
                 with cols[idx % 4]:
                     st.metric(cat.replace("_", " ").title(), info.get("count", 0))
         
-        # Critical failures
         critical = data.get("critical_failures", [])
         if critical:
             st.subheader("🔥 Critical")
             for f in critical[:2]:
                 st.warning(f.get("root_cause", "Unknown"))
         
-        # ============================================
-        # FIXED: SAFE VERSION - NO PROBLEMATIC EXPANDER
-        # ============================================
         st.subheader("🔗 Failure Chains")
         chains = data.get("failure_chains", [])[:3]
         
         if chains:
             for idx, chain in enumerate(chains):
-                # SAFELY get input
                 chain_input = chain.get("input")
                 if chain_input is None:
                     chain_input = ""
                 
-                # Create safe display text
                 if chain_input:
                     display_text = str(chain_input)[:40]
                     if len(str(chain_input)) > 40:
@@ -451,10 +444,8 @@ with st.expander("🔍 Root Cause"):
                 else:
                     display_text = f"Chain {idx + 1}"
                 
-                # Use simple markdown instead of expander
                 st.markdown(f"**🔗 Chain {idx + 1}:** {display_text}")
                 
-                # Display steps
                 steps = chain.get("chain", [])
                 if steps:
                     for step in steps:
@@ -469,25 +460,44 @@ with st.expander("🔍 Root Cause"):
             st.info("No failure chains available")
 
 # ============================================
-# 15. COST TRACKER (USD + INR)
+# 15. COST TRACKER (USD + INR) - FIXED
 # ============================================
 with st.expander("💰 Cost Analytics"):
     st.subheader("Test Cost Tracking")
     USD_TO_INR = 83.5
     
-    if st.button("📊 Get Cost Summary"):
-        if not st.session_state.api_connected:
-            st.warning("Connect first!")
-        else:
+    # Auto-fetch cost data on expander open
+    if st.session_state.api_connected and not st.session_state.get("cost_data"):
+        with st.spinner("Loading cost data..."):
             data, error = api_request("get", "/cost-summary", timeout=30)
             if not error:
                 st.session_state.cost_data = data
-                st.rerun()
+    
+    if st.button("📊 Refresh Cost Summary", use_container_width=True):
+        if not st.session_state.api_connected:
+            st.warning("Connect first!")
+        else:
+            with st.spinner("Fetching cost data..."):
+                data, error = api_request("get", "/cost-summary", timeout=30)
+                if not error:
+                    st.session_state.cost_data = data
+                    st.success("✅ Cost data updated!")
+                    st.rerun()
+                else:
+                    st.error(f"❌ {error}")
     
     if st.session_state.get("cost_data"):
         data = st.session_state.cost_data
         summary = data.get("summary", {})
         
+        # Check if we have real data
+        total_usd = summary.get("total_cost", 0)
+        
+        if total_usd == 0:
+            st.info("💡 No test costs tracked yet. Run tests to generate cost data.")
+            st.caption("Sample data will be shown after running tests.")
+        
+        # Calculate INR values
         total_usd = summary.get("total_cost", 0)
         per_test_usd = summary.get("cost_per_test", 0)
         per_pass_usd = summary.get("cost_per_pass", 0)
@@ -503,28 +513,51 @@ with st.expander("💰 Cost Analytics"):
         
         with col1:
             st.markdown("**🇺🇸 USD**")
-            st.metric("Total", f"${total_usd:.4f}")
+            st.metric("Total Cost", f"${total_usd:.4f}")
             st.metric("Per Test", f"${per_test_usd:.4f}")
             st.metric("Per Pass", f"${per_pass_usd:.4f}")
             st.metric("Per Failure", f"${per_fail_usd:.4f}")
         
         with col2:
             st.markdown("**🇮🇳 INR**")
-            st.metric("Total", f"₹{total_inr:.2f}")
+            st.metric("Total Cost", f"₹{total_inr:.2f}")
             st.metric("Per Test", f"₹{per_test_inr:.2f}")
             st.metric("Per Pass", f"₹{per_pass_inr:.2f}")
             st.metric("Per Failure", f"₹{per_fail_inr:.2f}")
         
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Tests", summary.get("total_tests", 0))
-        c2.metric("API Calls", summary.get("total_api_calls", 0))
-        c3.metric("Tokens", f"{summary.get('total_tokens', 0):,}")
+        # Summary metrics
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Total Tests", summary.get("total_tests", 0))
+        c2.metric("Passed", summary.get("pass_count", 0))
+        c3.metric("Failed", summary.get("fail_count", 0))
+        c4.metric("API Calls", summary.get("total_api_calls", 0))
         
+        # Token usage
+        total_tokens = summary.get("total_tokens", 0)
+        st.caption(f"Total Tokens Used: {total_tokens:,} | Avg Tokens/Test: {total_tokens // max(1, summary.get('total_tests', 1)):,}")
+        
+        # Most expensive tests
+        expensive = summary.get("most_expensive_tests", [])
+        if expensive:
+            st.subheader("🔥 Most Expensive Tests")
+            for test in expensive[:3]:
+                st.caption(
+                    f"  {test.get('test_id')}: "
+                    f"${test.get('cost', 0):.4f} "
+                    f"(₹{test.get('cost', 0) * USD_TO_INR:.2f}) | "
+                    f"{test.get('api_calls', 0)} calls | "
+                    f"{test.get('tokens_used', 0)} tokens"
+                )
+        
+        # Optimization suggestions
         suggestions = data.get("suggestions", [])
         if suggestions:
             st.subheader("💡 Optimizations")
             for s in suggestions:
                 st.info(s)
+    else:
+        st.info("💡 Click 'Refresh Cost Summary' to see cost data.")
+        st.caption("You need to run tests first to generate cost data.")
 
 # ============================================
 # 16. RAW REPORT
