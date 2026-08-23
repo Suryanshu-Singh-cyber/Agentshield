@@ -1,6 +1,6 @@
 # frontend/app.py
-# AGENTSHIELD FRONTEND - COMPLETE VERSION
-# Version: 2.0.1
+# AGENTSHIELD FRONTEND - COMPLETE VERSION WITH ALL FEATURES
+# Version: 3.0.0
 
 # ============================================
 # 1. IMPORT STATEMENTS
@@ -29,7 +29,6 @@ st.set_page_config(
 # 3. ENVIRONMENT DETECTION
 # ============================================
 def get_api_url():
-    """Returns the appropriate API URL based on environment."""
     try:
         if st.secrets.get("IS_STREAMLIT_CLOUD", "false") == "true":
             return st.secrets.get("AGENTSHIELD_API_URL", "https://agentshield-api.onrender.com")
@@ -87,6 +86,16 @@ if "evolution_data" not in st.session_state:
     st.session_state.evolution_data = None
 if "root_cause_data" not in st.session_state:
     st.session_state.root_cause_data = None
+if "datasets" not in st.session_state:
+    st.session_state.datasets = None
+if "dataset_tests" not in st.session_state:
+    st.session_state.dataset_tests = None
+if "eval_stats" not in st.session_state:
+    st.session_state.eval_stats = None
+if "canary_report" not in st.session_state:
+    st.session_state.canary_report = None
+if "fix_history" not in st.session_state:
+    st.session_state.fix_history = None
 
 # ============================================
 # 6. API FUNCTIONS
@@ -203,7 +212,7 @@ with st.sidebar:
     
     if st.session_state.tests_generated:
         st.caption(f"📋 {len(st.session_state.scenarios)} scenarios")
-    st.caption("v2.0.1 | OOSC 4.0")
+    st.caption("v3.0.0 | OOSC 4.0")
 
 # ============================================
 # 9. METRICS
@@ -393,9 +402,22 @@ with st.expander("🧠 Self-Evolving Tests"):
         c1.metric("Patterns", d.get("total_patterns", 0))
         c2.metric("Evolved", d.get("total_evolved_tests", 0))
         c3.metric("Last", d.get("last_analysis", "Never")[:10])
+    
+    # Self-Evolve button
+    if st.button("🔄 Self-Evolve from Failures", use_container_width=True):
+        if not st.session_state.api_connected:
+            st.warning("Connect first!")
+        else:
+            with st.spinner("Self-evolving..."):
+                data, error = api_request("post", "/self-evolve", timeout=30)
+                if error:
+                    st.error(f"❌ {error}")
+                else:
+                    st.success(f"✅ {data.get('new_tests', 0)} new tests evolved")
+                    st.rerun()
 
 # ============================================
-# 14. ROOT CAUSE (FIXED - NO PROBLEMATIC EXPANDER)
+# 14. ROOT CAUSE
 # ============================================
 with st.expander("🔍 Root Cause"):
     st.subheader("Failure Analysis")
@@ -430,74 +452,39 @@ with st.expander("🔍 Root Cause"):
         
         st.subheader("🔗 Failure Chains")
         chains = data.get("failure_chains", [])[:3]
-        
         if chains:
             for idx, chain in enumerate(chains):
-                chain_input = chain.get("input")
-                if chain_input is None:
-                    chain_input = ""
-                
-                if chain_input:
-                    display_text = str(chain_input)[:40]
-                    if len(str(chain_input)) > 40:
-                        display_text = display_text + "..."
-                else:
-                    display_text = f"Chain {idx + 1}"
-                
-                st.markdown(f"**🔗 Chain {idx + 1}:** {display_text}")
-                
-                steps = chain.get("chain", [])
-                if steps:
-                    for step in steps:
-                        step_num = step.get("step", "?")
-                        step_event = step.get("event", "Unknown")
-                        step_detail = step.get("detail", "")
-                        st.caption(f"  Step {step_num}: {step_event} → {step_detail}")
-                else:
-                    st.caption("  No steps available")
+                chain_input = chain.get("input") or ""
+                display_text = str(chain_input)[:40] + "..." if len(str(chain_input)) > 40 else str(chain_input) or f"Chain {idx+1}"
+                st.markdown(f"**🔗 Chain {idx+1}:** {display_text}")
+                for step in chain.get("chain", []):
+                    st.caption(f"  Step {step.get('step')}: {step.get('event')} → {step.get('detail')}")
                 st.divider()
         else:
             st.info("No failure chains available")
 
 # ============================================
-# 15. COST TRACKER (USD + INR) - FIXED
+# 15. COST TRACKER (USD + INR)
 # ============================================
 with st.expander("💰 Cost Analytics"):
     st.subheader("Test Cost Tracking")
     USD_TO_INR = 83.5
     
-    # Auto-fetch cost data on expander open
-    if st.session_state.api_connected and not st.session_state.get("cost_data"):
-        with st.spinner("Loading cost data..."):
-            data, error = api_request("get", "/cost-summary", timeout=30)
-            if not error:
-                st.session_state.cost_data = data
-    
-    if st.button("📊 Refresh Cost Summary", use_container_width=True):
+    if st.button("📊 Refresh Cost Summary"):
         if not st.session_state.api_connected:
             st.warning("Connect first!")
         else:
-            with st.spinner("Fetching cost data..."):
+            with st.spinner("Fetching..."):
                 data, error = api_request("get", "/cost-summary", timeout=30)
                 if not error:
                     st.session_state.cost_data = data
-                    st.success("✅ Cost data updated!")
+                    st.success("✅ Updated!")
                     st.rerun()
-                else:
-                    st.error(f"❌ {error}")
     
     if st.session_state.get("cost_data"):
         data = st.session_state.cost_data
         summary = data.get("summary", {})
         
-        # Check if we have real data
-        total_usd = summary.get("total_cost", 0)
-        
-        if total_usd == 0:
-            st.info("💡 No test costs tracked yet. Run tests to generate cost data.")
-            st.caption("Sample data will be shown after running tests.")
-        
-        # Calculate INR values
         total_usd = summary.get("total_cost", 0)
         per_test_usd = summary.get("cost_per_test", 0)
         per_pass_usd = summary.get("cost_per_pass", 0)
@@ -513,54 +500,255 @@ with st.expander("💰 Cost Analytics"):
         
         with col1:
             st.markdown("**🇺🇸 USD**")
-            st.metric("Total Cost", f"${total_usd:.4f}")
+            st.metric("Total", f"${total_usd:.4f}")
             st.metric("Per Test", f"${per_test_usd:.4f}")
             st.metric("Per Pass", f"${per_pass_usd:.4f}")
             st.metric("Per Failure", f"${per_fail_usd:.4f}")
         
         with col2:
             st.markdown("**🇮🇳 INR**")
-            st.metric("Total Cost", f"₹{total_inr:.2f}")
+            st.metric("Total", f"₹{total_inr:.2f}")
             st.metric("Per Test", f"₹{per_test_inr:.2f}")
             st.metric("Per Pass", f"₹{per_pass_inr:.2f}")
             st.metric("Per Failure", f"₹{per_fail_inr:.2f}")
         
-        # Summary metrics
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Total Tests", summary.get("total_tests", 0))
-        c2.metric("Passed", summary.get("pass_count", 0))
-        c3.metric("Failed", summary.get("fail_count", 0))
-        c4.metric("API Calls", summary.get("total_api_calls", 0))
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Tests", summary.get("total_tests", 0))
+        c2.metric("API Calls", summary.get("total_api_calls", 0))
+        c3.metric("Tokens", f"{summary.get('total_tokens', 0):,}")
         
-        # Token usage
-        total_tokens = summary.get("total_tokens", 0)
-        st.caption(f"Total Tokens Used: {total_tokens:,} | Avg Tokens/Test: {total_tokens // max(1, summary.get('total_tests', 1)):,}")
-        
-        # Most expensive tests
-        expensive = summary.get("most_expensive_tests", [])
-        if expensive:
-            st.subheader("🔥 Most Expensive Tests")
-            for test in expensive[:3]:
-                st.caption(
-                    f"  {test.get('test_id')}: "
-                    f"${test.get('cost', 0):.4f} "
-                    f"(₹{test.get('cost', 0) * USD_TO_INR:.2f}) | "
-                    f"{test.get('api_calls', 0)} calls | "
-                    f"{test.get('tokens_used', 0)} tokens"
-                )
-        
-        # Optimization suggestions
-        suggestions = data.get("suggestions", [])
-        if suggestions:
-            st.subheader("💡 Optimizations")
-            for s in suggestions:
-                st.info(s)
+        # Cost-to-Fix
+        if st.button("📊 Cost-to-Fix"):
+            data, error = api_request("get", "/cost-to-fix", timeout=30)
+            if not error:
+                st.json(data)
+    
     else:
-        st.info("💡 Click 'Refresh Cost Summary' to see cost data.")
-        st.caption("You need to run tests first to generate cost data.")
+        st.info("Click 'Refresh Cost Summary' to see cost data.")
 
 # ============================================
-# 16. RAW REPORT
+# 16. PER-TURN EVALUATION (NEW)
+# ============================================
+with st.expander("⚡ Per-Turn Evaluation"):
+    st.subheader("Real-time Agent Behavior Analysis")
+    st.caption("Lightweight evaluation on every agent step")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("📊 Get Evaluation Stats"):
+            if not st.session_state.api_connected:
+                st.warning("Connect first!")
+            else:
+                data, error = api_request("get", "/evaluate-stats", timeout=10)
+                if not error:
+                    st.session_state.eval_stats = data
+                    st.rerun()
+    
+    if st.session_state.get("eval_stats"):
+        stats = st.session_state.eval_stats
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Total Turns", stats.get("total_turns_evaluated", 0))
+        c2.metric("Safety Rate", f"{stats.get('safety_rate', 0)}%")
+        c3.metric("Avg Confidence", stats.get("avg_confidence", 0))
+        
+        if stats.get("flag_breakdown"):
+            st.subheader("Flag Breakdown")
+            for flag, count in stats.get("flag_breakdown", {}).items():
+                st.caption(f"  {flag}: {count}")
+    
+    st.subheader("Evaluate a Turn")
+    user_input = st.text_input("User Input:", "Delete my account")
+    agent_thought = st.text_input("Agent Thought:", "User wants account deletion")
+    
+    if st.button("🔍 Evaluate Turn"):
+        if not st.session_state.api_connected:
+            st.warning("Connect first!")
+        else:
+            with st.spinner("Evaluating..."):
+                data, error = api_request("post", "/evaluate-turn", 
+                                          json={"user_input": user_input, "agent_thought": agent_thought, "tool_calls": []}, 
+                                          timeout=10)
+                if error:
+                    st.error(f"❌ {error}")
+                else:
+                    st.json(data)
+
+# ============================================
+# 17. CANARY TESTING (NEW)
+# ============================================
+with st.expander("🦜 Canary Testing"):
+    st.subheader("Data Exfiltration Detection")
+    st.caption("Detect when agent tries to leak sensitive data")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("📊 Canary Report"):
+            if not st.session_state.api_connected:
+                st.warning("Connect first!")
+            else:
+                data, error = api_request("get", "/canary-report", timeout=10)
+                if not error:
+                    st.session_state.canary_report = data
+                    st.rerun()
+    
+    if st.session_state.get("canary_report"):
+        report = st.session_state.canary_report
+        c1, c2 = st.columns(2)
+        c1.metric("Total Canaries", report.get("total_canaries", 0))
+        c2.metric("Exfiltrated", report.get("exfiltrated", 0))
+    
+    st.subheader("Create Canary")
+    test_id = st.text_input("Test ID:", "canary_test_001")
+    data_type = st.selectbox("Data Type:", ["customer", "order", "api_key"])
+    
+    if st.button("🦜 Create Canary"):
+        if not st.session_state.api_connected:
+            st.warning("Connect first!")
+        else:
+            data, error = api_request("post", f"/create-canary?test_id={test_id}&data_type={data_type}", timeout=10)
+            if error:
+                st.error(f"❌ {error}")
+            else:
+                st.success("✅ Canary created!")
+                st.json(data)
+
+# ============================================
+# 18. FIX → PR GENERATION (NEW)
+# ============================================
+with st.expander("🔧 Fix → PR Generation"):
+    st.subheader("Automated Code Fix Generation")
+    st.caption("Generate and apply fixes for failures")
+    
+    if st.button("📊 Fix History"):
+        if not st.session_state.api_connected:
+            st.warning("Connect first!")
+        else:
+            data, error = api_request("get", "/fix-history", timeout=10)
+            if not error:
+                st.session_state.fix_history = data
+                st.rerun()
+    
+    if st.session_state.get("fix_history"):
+        history = st.session_state.fix_history
+        c1, c2 = st.columns(2)
+        c1.metric("Total Fixes", history.get("total_fixes", 0))
+        c2.metric("Applied", history.get("applied_fixes", 0))
+    
+    st.subheader("Generate Fix for Failure")
+    failure_input = st.text_area("Failure Description:", "delete_account was called without confirmation")
+    failure_type = st.selectbox("Failure Type:", ["destructive_action", "authority_override", "confirmation_missing", "tool_misuse"])
+    
+    if st.button("🔧 Generate Fix"):
+        if not st.session_state.api_connected:
+            st.warning("Connect first!")
+        else:
+            with st.spinner("Generating fix..."):
+                data, error = api_request("post", "/generate-fix", 
+                                          json={"failure": {"input": failure_input, "attack_type": failure_type, "id": "fix_test"}},
+                                          timeout=30)
+                if error:
+                    st.error(f"❌ {error}")
+                else:
+                    st.success("✅ Fix generated!")
+                    st.code(data.get("code", "# Fix code here"), language="python")
+                    st.caption(f"File: {data.get('file', 'agent.py')} | Description: {data.get('description', '')}")
+
+# ============================================
+# 19. DATASET LOADER (NEW)
+# ============================================
+with st.expander("📚 Dataset Loader"):
+    st.subheader("Evaluation Datasets")
+    st.caption("Built-in datasets: OWASP, MITRE, Prompt Injections, Destructive Actions, Benign, Edge Cases")
+    
+    # List datasets
+    if st.button("📊 List Datasets"):
+        if not st.session_state.api_connected:
+            st.warning("Connect first!")
+        else:
+            data, error = api_request("get", "/datasets", timeout=10)
+            if not error:
+                st.session_state.datasets = data
+                st.rerun()
+    
+    if st.session_state.get("datasets"):
+        datasets_data = st.session_state.datasets
+        datasets = datasets_data.get("datasets", [])
+        
+        if datasets:
+            df_datasets = pd.DataFrame(datasets)
+            st.dataframe(df_datasets, use_container_width=True)
+        
+        summary = datasets_data.get("summary", {})
+        if summary:
+            c1, c2 = st.columns(2)
+            c1.metric("Total Datasets", summary.get("total_datasets", 0))
+            c2.metric("Total Items", summary.get("total_items", 0))
+    
+    st.subheader("Load Dataset")
+    dataset_name = st.text_input("Dataset Name:", "owasp_top_10")
+    limit = st.number_input("Limit:", min_value=1, max_value=50, value=10)
+    filter_type = st.text_input("Filter by Attack Type (optional):", "")
+    
+    if st.button("📖 Load Dataset"):
+        if not st.session_state.api_connected:
+            st.warning("Connect first!")
+        else:
+            params = f"/dataset/{dataset_name}?limit={limit}"
+            if filter_type:
+                params += f"&filter_type={filter_type}"
+            data, error = api_request("get", params, timeout=10)
+            if error:
+                st.error(f"❌ {error}")
+            else:
+                st.session_state.dataset_tests = data
+                st.rerun()
+    
+    if st.session_state.get("dataset_tests"):
+        data = st.session_state.dataset_tests
+        st.subheader(f"Dataset: {data.get('dataset', 'Unknown')}")
+        st.metric("Items", data.get("count", 0))
+        tests = data.get("tests", [])
+        if tests:
+            df_tests = pd.DataFrame(tests)
+            st.dataframe(df_tests, use_container_width=True)
+        
+        stats = data.get("stats", {})
+        if stats:
+            st.subheader("Statistics")
+            for key, value in stats.items():
+                if key not in ["name", "description", "category", "version", "created_at", "tags"]:
+                    if isinstance(value, dict):
+                        st.caption(f"  {key}: {value}")
+    
+    st.subheader("Generate Synthetic Dataset")
+    gen_name = st.text_input("Dataset Name:", "my_synthetic_dataset")
+    gen_size = st.number_input("Size:", min_value=5, max_value=100, value=20)
+    gen_type = st.selectbox("Type:", ["synthetic", "owasp", "mitre", "production"])
+    
+    if st.button("🔄 Generate Dataset"):
+        if not st.session_state.api_connected:
+            st.warning("Connect first!")
+        else:
+            with st.spinner("Generating..."):
+                data, error = api_request("post", f"/dataset/generate?name={gen_name}&size={gen_size}&dataset_type={gen_type}", timeout=30)
+                if error:
+                    st.error(f"❌ {error}")
+                else:
+                    st.success(f"✅ Generated {data.get('size', 0)} items")
+                    st.json(data)
+    
+    st.subheader("Random Tests")
+    random_count = st.number_input("Count:", min_value=1, max_value=20, value=5)
+    if st.button("🎲 Get Random Tests"):
+        if not st.session_state.api_connected:
+            st.warning("Connect first!")
+        else:
+            data, error = api_request("get", f"/dataset/random?count={random_count}", timeout=10)
+            if not error:
+                st.json(data)
+
+# ============================================
+# 20. RAW REPORT
 # ============================================
 with st.expander("📊 Raw Report"):
     if has_report:
@@ -569,8 +757,8 @@ with st.expander("📊 Raw Report"):
         st.write("Run tests to see report")
 
 # ============================================
-# 17. FOOTER
+# 21. FOOTER
 # ============================================
 st.divider()
-st.caption("🛡️ AgentShield v2.0.1 | OOSC 4.0 | IIIT Allahabad")
+st.caption("🛡️ AgentShield v3.0.0 | OOSC 4.0 | IIIT Allahabad")
 st.caption(f"🔗 {API_URL}")
